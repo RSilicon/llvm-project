@@ -1,4 +1,4 @@
-add_llvm_component_library(LLVMMyCFG
+add_llvm_component_library(LLVMScarr
         ScarrCpMarker.cpp
         TopoSorter.cpp
 

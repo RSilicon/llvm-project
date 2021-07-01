@@ -15,7 +15,7 @@ add_llvm_component_library(LLVMPasses
   Analysis
   Core
   Coroutines
-  MyCFG
+  Scarr
   IPO
   InstCombine
   ObjCARC
