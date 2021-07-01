@@ -1,4 +1,4 @@
-//===-- HelloWorld.cpp - Example Transformations --------------------------===//
+//===-- ScarrCpMarker.cpp - Transform IR with Checkpoint Info ---*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -7,142 +7,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Transforms/Scarr/ScarrCpMarker.h"
-#include "llvm/ADT/BreadthFirstIterator.h"
-#include "llvm/ADT/DepthFirstIterator.h"
-#include "llvm/ADT/PostOrderIterator.h"
-#include "llvm/ADT/SCCIterator.h"
-#include "llvm/Analysis/BranchProbabilityInfo.h"
-#include "llvm/Analysis/CFGPrinter.h"
-#include "llvm/Analysis/HeatUtils.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/IR/Dominators.h"
-#include "llvm/IR/InstIterator.h"
-#include <sstream>
 
 using namespace llvm;
 
 void findVirtualCheckpoint(Function &F);
-
-void traverseCFG(Function &F) {
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in df_iterator:\n";
-//  auto counter = 0;
-  for (auto iterator = df_begin(&F.getEntryBlock()),
-           IE = df_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
-
-//    std::string name = iterator->getName().str();
-//    name.append("\\l df: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in idf_iterator:\n";
-//  counter = 0;
-  for (auto iterator = idf_begin(&F.getEntryBlock()),
-           IE = idf_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
-
-//    std::string name = iterator->getName().str();
-//    name.append("\\l idf: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in bf_iterator:\n";
-//  counter = 0;
-  for (auto iterator = bf_begin(&F.getEntryBlock()),
-           IE = bf_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
-
-//    std::string name = iterator->getName().str();
-//    name.append("\\l bf: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in scc_iterator:\n";
-//  counter = 0;
-  for (auto iterator = scc_begin(&F.getEntryBlock()),
-           IE = scc_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-//    outs() << iterator->getName() << "\n";
-//
-//    std::string name = iterator->getName().str();
-//    name.append("\\l scc: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : *iterator) {
-      outs() << *instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in po_iterator:\n";
-//  counter = 0;
-  for (auto iterator = po_begin(&F.getEntryBlock()),
-           IE = po_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
-
-//    std::string name = iterator->getName().str();
-//    name.append("\\l po: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in pred_iterator:\n";
-  for (auto iterator = pred_begin(&F.getEntryBlock()), IE = pred_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << *iterator << "\n";
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in succ_iterator:\n";
-//  counter = 0;
-  for (auto iterator = succ_begin(&F.getEntryBlock()),
-           IE = succ_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
-
-//    std::string name = iterator->getName().str();
-//    name.append(" \\l succ: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-}
 
 void findCheckpoints(Function &F, int nestedLevel) {
   std::string prefix = "";
@@ -228,7 +98,5 @@ PreservedAnalyses ScarrCpMarkerPass::run(Function &F, FunctionAnalysisManager &A
   }
   outs() << "Function '" << F.getName() << "'\n";
   findCheckpoints(F, 0);
-
-  traverseCFG(F);
   return PreservedAnalyses::all();
 }

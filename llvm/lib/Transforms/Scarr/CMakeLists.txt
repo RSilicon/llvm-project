@@ -1,5 +1,6 @@
 add_llvm_component_library(LLVMScarr
         ScarrCpMarker.cpp
+        ScarLoaCollector.cpp
         TopoSorter.cpp
 
         DEPENDS
