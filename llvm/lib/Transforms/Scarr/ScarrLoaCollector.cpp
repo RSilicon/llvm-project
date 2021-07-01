@@ -12,8 +12,26 @@
 #include "llvm/ADT/SCCIterator.h"
 #include "llvm/ADT/PostOrderIterator.h"
 #include "llvm/IR/CFG.h"
+#include <iostream>
 
 using namespace llvm;
+
+static std::string cpToString(Checkpoint cp) {
+  switch(cp) {
+  case Checkpoint::NA:
+    return "";
+  case Checkpoint::ThreadStart:
+    return "ThreadStart";
+  case Checkpoint::ThreadEnd:
+    return "ThreadEnd";
+  case Checkpoint::ExitPoint:
+    return "ExitPoint";
+  case Checkpoint::Virtual:
+    return "Virtual";
+  default:
+    return "Unknown";
+  }
+}
 
 void traverseCFG(Function &F) {
   outs() << "===============================================\n";
@@ -136,11 +154,35 @@ void traverseCFG(Function &F) {
   outs() << "\n\n";
 }
 
+void dfs(Function &F) {
+  outs() << "===============================================\n";
+  outs() << "Basic blocks of " << F.getName() << " in df_iterator:\n";
+  for (auto iterator = df_begin(&F.getEntryBlock()),
+           IE = df_end(&F.getEntryBlock());
+       iterator != IE; ++iterator) {
+    outs() << **iterator << "\n";
+    std::cout << cpToString(iterator->getCheckpoint()) << std::endl;
+  }
+  outs() << "\n\n";
+}
+
+void bfs(Function &F) {
+  outs() << "===============================================\n";
+  outs() << "Basic blocks of " << F.getName() << " in bf_iterator:\n";
+  for (auto iterator = bf_begin(&F.getEntryBlock()),
+           IE = bf_end(&F.getEntryBlock());
+       iterator != IE; ++iterator) {
+    outs() << **iterator << "\n";
+    std::cout << cpToString(iterator->getCheckpoint()) << std::endl;
+  }
+  outs() << "\n\n";
+}
+
 PreservedAnalyses ScarrLoaCollectorPass::run(Function &F, FunctionAnalysisManager &AM) {
   if (F.getName() == "main") {
     outs() << "==================================================\n";
   }
   outs() << "Function '" << F.getName() << "'\n";
-  traverseCFG(F);
+  bfs(F);
   return PreservedAnalyses::all();
 }
