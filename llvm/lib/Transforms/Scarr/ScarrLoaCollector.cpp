@@ -4,123 +4,115 @@
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
+///===---------------------------------------------------------------------===//
+//
+// Collect LoA from BasicBlock. Must be run after scarr-cp-marker pass.
+//
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Transforms/Scarr/ScarrLoaCollector.h"
 #include "llvm/ADT/BreadthFirstIterator.h"
 #include "llvm/ADT/DepthFirstIterator.h"
 #include "llvm/ADT/SCCIterator.h"
-#include "llvm/ADT/PostOrderIterator.h"
 #include "llvm/IR/CFG.h"
 #include <iostream>
 #include <vector>
 
 using namespace llvm;
 
-static std::string cpToString(Checkpoint cp) {
-  switch(cp) {
-  case Checkpoint::NA:
-    return "";
-  case Checkpoint::ThreadStart:
-    return "ThreadStart";
-  case Checkpoint::ThreadEnd:
-    return "ThreadEnd";
-  case Checkpoint::ExitPoint:
-    return "ExitPoint";
-  case Checkpoint::Virtual:
-    return "Virtual";
-  default:
-    return "Unknown";
-  }
-}
-
+// We will store ScaRR measurements in this type
 using MeasurementMap = std::map<std::pair<BasicBlock *, BasicBlock *>, std::vector<BasicBlock *>>;
 
-void handle(BasicBlock *bb,
+// For each BasicBlock find checkpoint and collect LoA that direct
+// control flow from previous Checkpoint to the next one.
+void handle(BasicBlock *basicBlock,
             MeasurementMap &measurements,
-            std::vector<BasicBlock *> &loas,
-            std::array<BasicBlock *, 2> &bbPair) {
+            std::vector<BasicBlock *> &LoA,
+            std::array<BasicBlock *, 2> &checkpointPair) {
 
-  if (bbPair[0] == nullptr) {
-    if (bb->getCheckpoint() != Checkpoint::NA) {
-      bbPair[0] = bb;
-      loas = std::vector<BasicBlock *>();
-      loas.push_back(bb);
+  if (checkpointPair[0] == nullptr) {
+    if (basicBlock->getCheckpoint() != Checkpoint::NA) {
+      checkpointPair[0] = basicBlock;
+      LoA = std::vector<BasicBlock *>();
+      LoA.push_back(basicBlock);
     }
-  } else if (bbPair[1] == nullptr) {
-    if (bb->getCheckpoint() != Checkpoint::NA) {
-      bbPair[1] = bb;
-      if (loas.size() < 2) {
-        loas.push_back(bb);
+  } else if (checkpointPair[1] == nullptr) {
+    if (basicBlock->getCheckpoint() != Checkpoint::NA) {
+      checkpointPair[1] = basicBlock;
+      if (LoA.size() < 2) {
+        LoA.push_back(basicBlock);
       }
-      std::pair<BasicBlock *, BasicBlock *> key = {bbPair[0], bbPair[1]};
-      measurements[key] = loas;
+      std::pair<BasicBlock *, BasicBlock *> key = {checkpointPair[0],
+                                                   checkpointPair[1]};
+      measurements[key] = LoA;
       // Current checkpoint will be the next checkpoint
-      bbPair = {nullptr, nullptr};
-      if (bb->getCheckpoint() != Checkpoint::NA) {
-        bbPair[0] = bb;
-        loas = std::vector<BasicBlock *>();
-        loas.push_back(bb);
+      checkpointPair = {nullptr, nullptr};
+      if (basicBlock->getCheckpoint() != Checkpoint::NA) {
+        checkpointPair[0] = basicBlock;
+        LoA = std::vector<BasicBlock *>();
+        LoA.push_back(basicBlock);
       }
     } else {
-      if (loas.size() < 2) {
-        loas.push_back(bb);
+      if (LoA.size() < 2) {
+        LoA.push_back(basicBlock);
       }
     }
   } else {
-    bbPair = {nullptr, nullptr};
-    if (bb->getCheckpoint() != Checkpoint::NA) {
-      bbPair[0] = bb;
-      loas = std::vector<BasicBlock *>();
-      loas.push_back(bb);
+    checkpointPair = {nullptr, nullptr};
+    if (basicBlock->getCheckpoint() != Checkpoint::NA) {
+      checkpointPair[0] = basicBlock;
+      LoA = std::vector<BasicBlock *>();
+      LoA.push_back(basicBlock);
     }
   }
-  if (bb->getTerminator()->getNumSuccessors() > 1) {
-    for (auto succ : successors(bb)) {
-      std::array<BasicBlock*, 2> bbPairNested = {bbPair[0], nullptr};
-      std::vector<BasicBlock*> nestedLoas = loas;
+  if (basicBlock->getTerminator()->getNumSuccessors() > 1) {
+    for (auto succ : successors(basicBlock)) {
+      std::array<BasicBlock*, 2> bbPairNested = {checkpointPair[0], nullptr};
+      std::vector<BasicBlock*> nestedLoas = LoA;
       handle(succ, measurements, nestedLoas, bbPairNested);
     }
   }
 }
 
 
-void markLoa(Function &function) {
-  // Put in vector for easy reference
-  std::vector<BasicBlock *> bbs;
+void collectListOfActions(Function &function) {
+  // We will put BasicBlock in vector for easy reference
+  std::vector<BasicBlock *> basicBlocks;
   if (function.getName() == "main") {
     for (auto it : depth_first(&function.getEntryBlock())) {
-      bbs.push_back(it);
+      basicBlocks.push_back(it);
     }
   }
 
-  std::array<BasicBlock *, 2> bbPair = {nullptr, nullptr};
-  std::vector<BasicBlock *> loas;
+  // Pair of Checkpoint_A and Cheeckpont_B
+  std::array<BasicBlock *, 2> checkpointPair = {nullptr, nullptr};
+  // List of Action
+  std::vector<BasicBlock *> LoA;
+  // We will store the measurement here
   MeasurementMap measurements;
-  for (auto bb : depth_first(bbs[0])) {
-    handle(bb, measurements, loas, bbPair);
+  // Do DFS and collect List of Actions as we traverse BasicBlock and its checkpoints
+  for (auto basicBlock : depth_first(basicBlocks[0])) {
+    handle(basicBlock, measurements, LoA, checkpointPair);
   }
 
-
-  std::cout << "Results size is " << measurements.size() << std::endl;
+  // Printing the result
+  std::cout << "The size of the measurement: " << measurements.size() << std::endl;
   for (auto iter: measurements) {
     auto key = iter.first;
     auto value = iter.second;
-    outs() << "CP1: " << *key.first << "\n";
-    outs() << "CP2: " << *key.second << "\n";
+    outs() << "Checkpoint_A: " << *key.first << "\n";
+    outs() << "Checkpoint_B: " << *key.second << "\n";
+
     int idx = 0;
     for (auto loa : value) {
       outs() << "LOA" << idx << ": " << *loa << "\n";
       idx++;
     }
+    outs() << "=====================================\n";
   }
 }
 
 PreservedAnalyses ScarrLoaCollectorPass::run(Function &F, FunctionAnalysisManager &AM) {
-  if (F.getName() == "main") {
-    outs() << "==================================================\n";
-  }
-  outs() << "Function '" << F.getName() << "'\n";
-  markLoa(F);
+  collectListOfActions(F);
   return PreservedAnalyses::all();
 }

@@ -4,6 +4,10 @@
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
+///===----------------------------------------------------------------------===//
+//
+// Mark Basic Blocks into different ScaRR checkpoint types.
+//
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Transforms/Scarr/ScarrCpMarker.h"
