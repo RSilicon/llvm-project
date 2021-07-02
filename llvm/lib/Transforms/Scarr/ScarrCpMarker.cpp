@@ -21,8 +21,6 @@ void findCheckpoints(Function &F, int nestedLevel) {
   }
   bool isThreadStartCheckpoint = F.getName() == "main";
   for (auto &bb : F) {
-    outs() << prefix << "Basic Block '" << &bb << "' Instructions: '" << bb << "'\n";
-
     bool isThreadEndCheckpoint = false;
     bool isExitPointCheckpoint = false;
     for (auto &i : bb) {
@@ -41,12 +39,10 @@ void findCheckpoints(Function &F, int nestedLevel) {
         if (call != nullptr && call->getCalledFunction() != nullptr && !call->getCalledFunction()->empty()) {
           auto calledFunction = call->getCalledFunction()->getName();
           if (calledFunction == F.getName()) {
-            outs() << prefix << "Recursion is detected, skip this\n";
+            // Recursion is detected
             continue;
           }
-          outs() << prefix << "Traversing nestedLevel function " << calledFunction << " Instruction '" << i << "'\n";
           findCheckpoints(*(call->getCalledFunction()), nestedLevel + 1);
-          outs() << prefix << "Finished traversing nestedLevel function " << call->getCalledFunction()->getName() << "\n";
         } else {
           // The function is outside of the translation unit, hence it is an exit point
           if (!isThreadStartCheckpoint && !isThreadEndCheckpoint) {
@@ -64,17 +60,12 @@ void findCheckpoints(Function &F, int nestedLevel) {
     } else if (isExitPointCheckpoint) {
       bb.setCheckpoint(Checkpoint::ExitPoint);
     }
-    if (!nestedLevel) {
-      outs() << "\n\n";
-    }
   }
 
   findVirtualCheckpoint(F);
 }
 
 void findVirtualCheckpoint(Function &F) {
-  outs() << "==================================================\n";
-  outs() << "Analyzing loop\n";
   DominatorTree* DT = new DominatorTree();
   DT->recalculate(F);
   // generate the LoopInfoBase for the current function
@@ -94,9 +85,7 @@ void findVirtualCheckpoint(Function &F) {
 
 PreservedAnalyses ScarrCpMarkerPass::run(Function &F, FunctionAnalysisManager &AM) {
   if (F.getName() == "main") {
-    outs() << "==================================================\n";
   }
-  outs() << "Function '" << F.getName() << "'\n";
   findCheckpoints(F, 0);
   return PreservedAnalyses::all();
 }

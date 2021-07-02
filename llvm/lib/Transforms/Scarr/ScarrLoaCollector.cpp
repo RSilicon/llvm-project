@@ -13,6 +13,7 @@
 #include "llvm/ADT/PostOrderIterator.h"
 #include "llvm/IR/CFG.h"
 #include <iostream>
+#include <vector>
 
 using namespace llvm;
 
@@ -33,149 +34,86 @@ static std::string cpToString(Checkpoint cp) {
   }
 }
 
-void traverseCFG(Function &F) {
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in df_iterator:\n";
-//  auto counter = 0;
-  for (auto iterator = df_begin(&F.getEntryBlock()),
-           IE = df_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
+using MeasurementMap = std::map<std::pair<BasicBlock *, BasicBlock *>, std::vector<BasicBlock *>>;
 
-//    std::string name = iterator->getName().str();
-//    name.append("\\l df: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
+void handle(BasicBlock *bb,
+            MeasurementMap &measurements,
+            std::vector<BasicBlock *> &loas,
+            std::array<BasicBlock *, 2> &bbPair) {
+
+  if (bbPair[0] == nullptr) {
+    if (bb->getCheckpoint() != Checkpoint::NA) {
+      bbPair[0] = bb;
+      loas = std::vector<BasicBlock *>();
+      loas.push_back(bb);
+    }
+  } else if (bbPair[1] == nullptr) {
+    if (bb->getCheckpoint() != Checkpoint::NA) {
+      bbPair[1] = bb;
+      if (loas.size() < 2) {
+        loas.push_back(bb);
+      }
+      std::pair<BasicBlock *, BasicBlock *> key = {bbPair[0], bbPair[1]};
+      measurements[key] = loas;
+      // Current checkpoint will be the next checkpoint
+      bbPair = {nullptr, nullptr};
+      if (bb->getCheckpoint() != Checkpoint::NA) {
+        bbPair[0] = bb;
+        loas = std::vector<BasicBlock *>();
+        loas.push_back(bb);
+      }
+    } else {
+      if (loas.size() < 2) {
+        loas.push_back(bb);
+      }
+    }
+  } else {
+    bbPair = {nullptr, nullptr};
+    if (bb->getCheckpoint() != Checkpoint::NA) {
+      bbPair[0] = bb;
+      loas = std::vector<BasicBlock *>();
+      loas.push_back(bb);
     }
   }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in idf_iterator:\n";
-//  counter = 0;
-  for (auto iterator = idf_begin(&F.getEntryBlock()),
-           IE = idf_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
-
-//    std::string name = iterator->getName().str();
-//    name.append("\\l idf: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
+  if (bb->getTerminator()->getNumSuccessors() > 1) {
+    for (auto succ : successors(bb)) {
+      std::array<BasicBlock*, 2> bbPairNested = {bbPair[0], nullptr};
+      std::vector<BasicBlock*> nestedLoas = loas;
+      handle(succ, measurements, nestedLoas, bbPairNested);
     }
   }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in bf_iterator:\n";
-//  counter = 0;
-  for (auto iterator = bf_begin(&F.getEntryBlock()),
-           IE = bf_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
-
-//    std::string name = iterator->getName().str();
-//    name.append("\\l bf: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in scc_iterator:\n";
-//  counter = 0;
-  for (auto iterator = scc_begin(&F.getEntryBlock()),
-           IE = scc_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-//    outs() << iterator->getName() << "\n";
-//
-//    std::string name = iterator->getName().str();
-//    name.append("\\l scc: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : *iterator) {
-      outs() << *instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in po_iterator:\n";
-//  counter = 0;
-  for (auto iterator = po_begin(&F.getEntryBlock()),
-           IE = po_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
-
-//    std::string name = iterator->getName().str();
-//    name.append("\\l po: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in pred_iterator:\n";
-  for (auto iterator = pred_begin(&F.getEntryBlock()), IE = pred_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << *iterator << "\n";
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
-
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in succ_iterator:\n";
-//  counter = 0;
-  for (auto iterator = succ_begin(&F.getEntryBlock()),
-           IE = succ_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << iterator->getName() << "\n";
-
-//    std::string name = iterator->getName().str();
-//    name.append(" \\l succ: ").append(std::to_string(counter));
-//    iterator->setName(name);
-//    counter++;
-    for (auto &instruction : **iterator) {
-      outs() << instruction << "\n";
-    }
-  }
-  outs() << "\n\n";
 }
 
-void dfs(Function &F) {
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in df_iterator:\n";
-  for (auto iterator = df_begin(&F.getEntryBlock()),
-           IE = df_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << **iterator << "\n";
-    std::cout << cpToString(iterator->getCheckpoint()) << std::endl;
-  }
-  outs() << "\n\n";
-}
 
-void bfs(Function &F) {
-  outs() << "===============================================\n";
-  outs() << "Basic blocks of " << F.getName() << " in bf_iterator:\n";
-  for (auto iterator = bf_begin(&F.getEntryBlock()),
-           IE = bf_end(&F.getEntryBlock());
-       iterator != IE; ++iterator) {
-    outs() << **iterator << "\n";
-    std::cout << cpToString(iterator->getCheckpoint()) << std::endl;
+void markLoa(Function &function) {
+  // Put in vector for easy reference
+  std::vector<BasicBlock *> bbs;
+  if (function.getName() == "main") {
+    for (auto it : depth_first(&function.getEntryBlock())) {
+      bbs.push_back(it);
+    }
   }
-  outs() << "\n\n";
+
+  std::array<BasicBlock *, 2> bbPair = {nullptr, nullptr};
+  std::vector<BasicBlock *> loas;
+  MeasurementMap measurements;
+  for (auto bb : depth_first(bbs[0])) {
+    handle(bb, measurements, loas, bbPair);
+  }
+
+
+  std::cout << "Results size is " << measurements.size() << std::endl;
+  for (auto iter: measurements) {
+    auto key = iter.first;
+    auto value = iter.second;
+    outs() << "CP1: " << *key.first << "\n";
+    outs() << "CP2: " << *key.second << "\n";
+    int idx = 0;
+    for (auto loa : value) {
+      outs() << "LOA" << idx << ": " << *loa << "\n";
+      idx++;
+    }
+  }
 }
 
 PreservedAnalyses ScarrLoaCollectorPass::run(Function &F, FunctionAnalysisManager &AM) {
@@ -183,6 +121,6 @@ PreservedAnalyses ScarrLoaCollectorPass::run(Function &F, FunctionAnalysisManage
     outs() << "==================================================\n";
   }
   outs() << "Function '" << F.getName() << "'\n";
-  bfs(F);
+  markLoa(F);
   return PreservedAnalyses::all();
 }
