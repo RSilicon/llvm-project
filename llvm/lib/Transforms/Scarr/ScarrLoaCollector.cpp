@@ -105,7 +105,7 @@ void collectListOfActions(Function &function) {
 
     int idx = 0;
     for (auto loa : value) {
-      outs() << "LOA" << idx << ": " << *loa << "\n";
+      outs() << "LOA_" << idx << ": " << *loa << "\n";
       idx++;
     }
     outs() << "=====================================\n";
