@@ -29,15 +29,31 @@ using MeasurementMap = std::map<std::pair<BasicBlock *, BasicBlock *>, std::vect
 void handle(BasicBlock *firstCp,
             BasicBlock *successor,
             MeasurementMap &measurements,
-            std::vector<BasicBlock *> &LoA,
+            std::vector<BasicBlock *> LoA,
             std::array<BasicBlock *, 2> &checkpointPair) {
-  for (auto bb : successors(successor)) {
-    if (bb->getCheckpoint() != Checkpoint::NA) {
-      outs() << "=====================\n";
-      outs() << "CP_A:" << *firstCp << "\n";
-      outs() << "CP_B:" << *bb << "\n";
+  // This checkpoint is branch, hence we need to collect LoA
+  if (firstCp->getTerminator()->getNumSuccessors() > 1) {
+    // We only add firstCp to LoA if LoA is still empty
+    if (LoA.empty()) {
+      LoA.push_back(firstCp);
+    }
+  }
+  for (auto succ : successors(successor)) {
+    // We need a copy of LoA for every branch out
+    auto succLoA = LoA;
+    // Successor is a checkpoint
+    if (succ->getCheckpoint() != Checkpoint::NA) {
+      if (succLoA.size() == 1) {
+        succLoA.push_back(succ);
+      }
+      auto cp = std::make_pair(firstCp, succ);
+      measurements[cp] = succLoA;
     } else {
-      handle(firstCp, bb, measurements, LoA, checkpointPair);
+      if (!succLoA.empty() &&
+          succLoA.back()->getCheckpoint() != Checkpoint::NA) {
+        succLoA.push_back(succ);
+      }
+      handle(firstCp, succ, measurements, succLoA, checkpointPair);
     }
   }
 }
