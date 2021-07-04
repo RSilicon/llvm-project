@@ -15,6 +15,7 @@
 #include "llvm/ADT/DepthFirstIterator.h"
 #include "llvm/ADT/SCCIterator.h"
 #include "llvm/IR/CFG.h"
+#include "llvm/IR/Dominators.h"
 #include <iostream>
 #include <vector>
 
@@ -25,62 +26,32 @@ using MeasurementMap = std::map<std::pair<BasicBlock *, BasicBlock *>, std::vect
 
 // For each BasicBlock find checkpoint and collect LoA that direct
 // control flow from previous Checkpoint to the next one.
-void handle(BasicBlock *basicBlock,
+void handle(BasicBlock *firstCp,
+            BasicBlock *successor,
             MeasurementMap &measurements,
             std::vector<BasicBlock *> &LoA,
             std::array<BasicBlock *, 2> &checkpointPair) {
-
-  if (checkpointPair[0] == nullptr) {
-    if (basicBlock->getCheckpoint() != Checkpoint::NA) {
-      checkpointPair[0] = basicBlock;
-      LoA = std::vector<BasicBlock *>();
-      LoA.push_back(basicBlock);
-    }
-  } else if (checkpointPair[1] == nullptr) {
-    if (basicBlock->getCheckpoint() != Checkpoint::NA) {
-      checkpointPair[1] = basicBlock;
-      if (LoA.size() < 2) {
-        LoA.push_back(basicBlock);
-      }
-      std::pair<BasicBlock *, BasicBlock *> key = {checkpointPair[0],
-                                                   checkpointPair[1]};
-      measurements[key] = LoA;
-      // Current checkpoint will be the next checkpoint
-      checkpointPair = {nullptr, nullptr};
-      if (basicBlock->getCheckpoint() != Checkpoint::NA) {
-        checkpointPair[0] = basicBlock;
-        LoA = std::vector<BasicBlock *>();
-        LoA.push_back(basicBlock);
-      }
+  for (auto bb : successors(successor)) {
+    if (bb->getCheckpoint() != Checkpoint::NA) {
+      outs() << "=====================\n";
+      outs() << "CP_A:" << *firstCp << "\n";
+      outs() << "CP_B:" << *bb << "\n";
     } else {
-      if (LoA.size() < 2) {
-        LoA.push_back(basicBlock);
-      }
-    }
-  } else {
-    checkpointPair = {nullptr, nullptr};
-    if (basicBlock->getCheckpoint() != Checkpoint::NA) {
-      checkpointPair[0] = basicBlock;
-      LoA = std::vector<BasicBlock *>();
-      LoA.push_back(basicBlock);
-    }
-  }
-  if (basicBlock->getTerminator()->getNumSuccessors() > 1) {
-    for (auto succ : successors(basicBlock)) {
-      std::array<BasicBlock*, 2> bbPairNested = {checkpointPair[0], nullptr};
-      std::vector<BasicBlock*> nestedLoas = LoA;
-      handle(succ, measurements, nestedLoas, bbPairNested);
+      handle(firstCp, bb, measurements, LoA, checkpointPair);
     }
   }
 }
 
-
-void collectListOfActions(Function &function) {
+void collectListOfActions(DominatorTree &DT, Function &function) {
   // We will put BasicBlock in vector for easy reference
   std::vector<BasicBlock *> basicBlocks;
+  std::vector<BasicBlock *> basicBlockCheckpoints;
   if (function.getName() == "main") {
     for (auto it : depth_first(&function.getEntryBlock())) {
       basicBlocks.push_back(it);
+      if (it->getCheckpoint() != Checkpoint::NA) {
+        basicBlockCheckpoints.push_back(it);
+      }
     }
   }
 
@@ -90,12 +61,12 @@ void collectListOfActions(Function &function) {
   std::vector<BasicBlock *> LoA;
   // We will store the measurement here
   MeasurementMap measurements;
-  // Do DFS and collect List of Actions as we traverse BasicBlock and its checkpoints
-  for (auto basicBlock : depth_first(basicBlocks[0])) {
-    handle(basicBlock, measurements, LoA, checkpointPair);
+  for (auto cp : basicBlockCheckpoints) {
+    handle(cp, cp, measurements, LoA, checkpointPair);
   }
 
   // Printing the result
+  std::cout << "=============================" << measurements.size() << std::endl;
   std::cout << "The size of the measurement: " << measurements.size() << std::endl;
   for (auto iter: measurements) {
     auto key = iter.first;
@@ -113,6 +84,8 @@ void collectListOfActions(Function &function) {
 }
 
 PreservedAnalyses ScarrLoaCollectorPass::run(Function &F, FunctionAnalysisManager &AM) {
-  collectListOfActions(F);
+  DominatorTree *DT = new DominatorTree();
+  DT->recalculate(F);
+  collectListOfActions(*DT, F);
   return PreservedAnalyses::all();
 }

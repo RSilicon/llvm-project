@@ -16,13 +16,24 @@
 
 using namespace llvm;
 
-void findVirtualCheckpoint(Function &F);
-
-void findCheckpoints(Function &F, int nestedLevel) {
-  std::string prefix = "";
-  for (int i = 0; i < nestedLevel; i++) {
-    prefix.append(">>");
+void findVirtualCheckpoint(DominatorTree &DT, Function &F) {
+  DT.recalculate(F);
+  // generate the LoopInfoBase for the current function
+  LoopInfoBase<BasicBlock, Loop>* KLoop = new LoopInfoBase<BasicBlock, Loop>();
+  KLoop->releaseMemory();
+  KLoop->analyze(DT);
+  for (auto &bb : F) {
+    // Since the BasicBlock would have been inlined, just traverse from main function
+    if (F.getName() == "main") {
+      auto loop = KLoop->getLoopFor(&bb);
+      if (loop != nullptr) {
+        loop->getHeader()->setCheckpoint(Checkpoint::Virtual);
+      }
+    }
   }
+}
+
+void findCheckpoints(DominatorTree &DT, Function &F, int nestedLevel) {
   bool isThreadStartCheckpoint = F.getName() == "main";
   for (auto &bb : F) {
     bool isThreadEndCheckpoint = false;
@@ -46,7 +57,7 @@ void findCheckpoints(Function &F, int nestedLevel) {
             // Recursion is detected
             continue;
           }
-          findCheckpoints(*(call->getCalledFunction()), nestedLevel + 1);
+          findCheckpoints(DT, *(call->getCalledFunction()), nestedLevel + 1);
         } else {
           // The function is outside of the translation unit, hence it is an exit point
           if (!isThreadStartCheckpoint && !isThreadEndCheckpoint) {
@@ -66,30 +77,12 @@ void findCheckpoints(Function &F, int nestedLevel) {
     }
   }
 
-  findVirtualCheckpoint(F);
+  findVirtualCheckpoint(DT,F);
 }
 
-void findVirtualCheckpoint(Function &F) {
-  DominatorTree* DT = new DominatorTree();
-  DT->recalculate(F);
-  // generate the LoopInfoBase for the current function
-  LoopInfoBase<BasicBlock, Loop>* KLoop = new LoopInfoBase<BasicBlock, Loop>();
-  KLoop->releaseMemory();
-  KLoop->analyze(*DT);
-  for (auto &bb : F) {
-    // Since the BasicBlock would have been inlined, just traverse from main function
-    if (F.getName() == "main") {
-      auto loop = KLoop->getLoopFor(&bb);
-      if (loop != nullptr) {
-        loop->getHeader()->setCheckpoint(Checkpoint::Virtual);
-      }
-    }
-  }
-}
 
 PreservedAnalyses ScarrCpMarkerPass::run(Function &F, FunctionAnalysisManager &AM) {
-  if (F.getName() == "main") {
-  }
-  findCheckpoints(F, 0);
+  DominatorTree DT;
+  findCheckpoints(DT, F, 0);
   return PreservedAnalyses::all();
 }
