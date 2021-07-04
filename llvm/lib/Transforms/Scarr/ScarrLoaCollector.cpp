@@ -11,11 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/Transforms/Scarr/ScarrLoaCollector.h"
-#include "llvm/ADT/BreadthFirstIterator.h"
 #include "llvm/ADT/DepthFirstIterator.h"
 #include "llvm/ADT/SCCIterator.h"
 #include "llvm/IR/CFG.h"
-#include "llvm/IR/Dominators.h"
 #include <iostream>
 #include <vector>
 
@@ -24,13 +22,12 @@ using namespace llvm;
 // We will store ScaRR measurements in this type
 using MeasurementMap = std::map<std::pair<BasicBlock *, BasicBlock *>, std::vector<BasicBlock *>>;
 
-// For each BasicBlock find checkpoint and collect LoA that direct
+// For each BasicBlock find checkpoint and collect LoA that directs
 // control flow from previous Checkpoint to the next one.
 void handle(BasicBlock *firstCp,
             BasicBlock *successor,
             MeasurementMap &measurements,
-            std::vector<BasicBlock *> LoA,
-            std::array<BasicBlock *, 2> &checkpointPair) {
+            std::vector<BasicBlock *> LoA) {
   // This checkpoint is branch, hence we need to collect LoA
   if (firstCp->getTerminator()->getNumSuccessors() > 1) {
     // We only add firstCp to LoA if LoA is still empty
@@ -39,7 +36,7 @@ void handle(BasicBlock *firstCp,
     }
   }
   for (auto succ : successors(successor)) {
-    // We need a copy of LoA for every branch out
+    // We need a copy of LoA in every loop
     auto succLoA = LoA;
     // Successor is a checkpoint
     if (succ->getCheckpoint() != Checkpoint::NA) {
@@ -53,29 +50,28 @@ void handle(BasicBlock *firstCp,
           succLoA.back()->getCheckpoint() != Checkpoint::NA) {
         succLoA.push_back(succ);
       }
-      handle(firstCp, succ, measurements, succLoA, checkpointPair);
+      handle(firstCp, succ, measurements, succLoA);
     }
   }
 }
 
-void collectListOfActions(DominatorTree &DT, Function &function) {
-  // We will put BasicBlock in vector for easy reference
-  std::vector<BasicBlock *> basicBlockCheckpoints;
+void collectListOfActions(Function &function) {
+  // We will run only in main function
   if (function.getName() == "main") {
+    // This is the list of checkpoints which we will later iterate
+    std::vector<BasicBlock *> basicBlockCheckpoints;
     for (auto it : depth_first(&function.getEntryBlock())) {
       if (it->getCheckpoint() != Checkpoint::NA) {
         basicBlockCheckpoints.push_back(it);
       }
     }
 
-    // Pair of Checkpoint_A and Checkpoint_B
-    std::array<BasicBlock *, 2> checkpointPair = {nullptr, nullptr};
     // List of Action
     std::vector<BasicBlock *> LoA;
     // We will store the measurement here
     MeasurementMap measurements;
     for (auto cp : basicBlockCheckpoints) {
-      handle(cp, cp, measurements, LoA, checkpointPair);
+      handle(cp, cp, measurements, LoA);
     }
 
     auto loaCount = 0;
@@ -99,13 +95,14 @@ void collectListOfActions(DominatorTree &DT, Function &function) {
       auto listOfActions = measurement.second;
       std::cout << "=============================================================" << std::endl;
       std::cout << "Checkpoint " << mIndex << std::endl;
-      std::cout << "LoA Size: " << listOfActions.size() << std::endl;
-      outs() << "Checkpoint_A: " << *cpPair.first << "\n";
-      outs() << "Checkpoint_B: " << *cpPair.second << "\n";
+      std::cout << "LoA Size: " << listOfActions.size() << std::endl << std::endl;
+      outs() << "Checkpoint_" << mIndex << "_A: " << *cpPair.first << "\n";
+      outs() << "Checkpoint_" << mIndex << "_B: " << *cpPair.second << "\n";
 
       if (!listOfActions.empty()) {
         std::cout << "LoA Details: " << std::endl;
       }
+
       int idx = 0;
       for (auto loa : listOfActions) {
         outs() << "LOA_" << idx << ": " << *loa << "\n";
@@ -115,13 +112,9 @@ void collectListOfActions(DominatorTree &DT, Function &function) {
       mIndex++;
     }
   }
-
-
 }
 
 PreservedAnalyses ScarrLoaCollectorPass::run(Function &F, FunctionAnalysisManager &AM) {
-  DominatorTree *DT = new DominatorTree();
-  DT->recalculate(F);
-  collectListOfActions(*DT, F);
+  collectListOfActions(F);
   return PreservedAnalyses::all();
 }
