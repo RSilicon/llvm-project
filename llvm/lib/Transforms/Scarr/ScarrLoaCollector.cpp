@@ -94,7 +94,7 @@ void collectListOfActions(Function &function) {
       auto cpPair = measurement.first;
       auto listOfActions = measurement.second;
       std::cout << "=============================================================" << std::endl;
-      std::cout << "Checkpoint " << mIndex << std::endl;
+      std::cout << "Measurement " << mIndex << std::endl;
       std::cout << "LoA Size: " << listOfActions.size() << std::endl << std::endl;
       outs() << "Checkpoint_" << mIndex << "_A: " << *cpPair.first << "\n";
       outs() << "Checkpoint_" << mIndex << "_B: " << *cpPair.second << "\n";
