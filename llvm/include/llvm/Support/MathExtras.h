@@ -314,28 +314,28 @@ T reverseBits(T Val) {
 
 #if __has_builtin(__builtin_bitreverse8)
 template<>
-inline uint8_t reverseBits<uint8_t>(uint8_t Val) {
+constexpr inline uint8_t reverseBits<uint8_t>(uint8_t Val) {
   return __builtin_bitreverse8(Val);
 }
 #endif
 
 #if __has_builtin(__builtin_bitreverse16)
 template<>
-inline uint16_t reverseBits<uint16_t>(uint16_t Val) {
+constexpr inline uint16_t reverseBits<uint16_t>(uint16_t Val) {
   return __builtin_bitreverse16(Val);
 }
 #endif
 
 #if __has_builtin(__builtin_bitreverse32)
 template<>
-inline uint32_t reverseBits<uint32_t>(uint32_t Val) {
+constexpr inline uint32_t reverseBits<uint32_t>(uint32_t Val) {
   return __builtin_bitreverse32(Val);
 }
 #endif
 
 #if __has_builtin(__builtin_bitreverse64)
 template<>
-inline uint64_t reverseBits<uint64_t>(uint64_t Val) {
+constexpr inline uint64_t reverseBits<uint64_t>(uint64_t Val) {
   return __builtin_bitreverse64(Val);
 }
 #endif
