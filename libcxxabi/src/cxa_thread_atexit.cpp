@@ -15,7 +15,7 @@
 #endif
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 
 namespace __cxxabiv1 {
 
