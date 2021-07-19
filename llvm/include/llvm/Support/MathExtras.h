@@ -127,7 +127,7 @@ template <typename T> struct TrailingZerosCounter<T, 8> {
 #if __has_builtin(__builtin_ctzll) || defined(__GNUC__)
     return __builtin_ctzll(Val);
 #elif defined(_MSC_VER)
-    unsigned long Index;
+    unsigned long Index = 0;
     _BitScanForward64(&Index, Val);
     return Index;
 #endif
