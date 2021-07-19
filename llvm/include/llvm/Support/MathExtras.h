@@ -27,15 +27,7 @@
 #endif
 
 #ifdef _MSC_VER
-// Declare these intrinsics manually rather including intrin.h. It's very
-// expensive, and MathExtras.h is popular.
-// #include <intrin.h>
-extern "C" {
-unsigned char _BitScanForward(unsigned long *_Index, unsigned long _Mask);
-unsigned char _BitScanForward64(unsigned long *_Index, unsigned __int64 _Mask);
-unsigned char _BitScanReverse(unsigned long *_Index, unsigned long _Mask);
-unsigned char _BitScanReverse64(unsigned long *_Index, unsigned __int64 _Mask);
-}
+#include <intrin.h>
 #endif
 
 namespace llvm {
@@ -88,7 +80,7 @@ constexpr float ef          = 2.71828183F, // (0x1.5bf0a8P+1) https://oeis.org/A
 
 namespace detail {
 template <typename T, std::size_t SizeOfT> struct TrailingZerosCounter {
-  static unsigned count(T Val, ZeroBehavior) {
+  constexpr static unsigned count(T Val, ZeroBehavior) {
     if (!Val)
       return std::numeric_limits<T>::digits;
     if (Val & 0x1)
@@ -112,7 +104,7 @@ template <typename T, std::size_t SizeOfT> struct TrailingZerosCounter {
 
 #if defined(__GNUC__) || defined(_MSC_VER)
 template <typename T> struct TrailingZerosCounter<T, 4> {
-  static unsigned count(T Val, ZeroBehavior ZB) {
+  constexpr static unsigned count(T Val, ZeroBehavior ZB) {
     if (ZB != ZB_Undefined && Val == 0)
       return 32;
 
@@ -153,7 +145,7 @@ template <typename T> struct TrailingZerosCounter<T, 8> {
 /// \param ZB the behavior on an input of 0. Only ZB_Width and ZB_Undefined are
 ///   valid arguments.
 template <typename T>
-unsigned countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
+constexpr unsigned countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
   static_assert(std::numeric_limits<T>::is_integer &&
                     !std::numeric_limits<T>::is_signed,
                 "Only unsigned integral types are allowed.");
@@ -162,7 +154,7 @@ unsigned countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
 
 namespace detail {
 template <typename T, std::size_t SizeOfT> struct LeadingZerosCounter {
-  static unsigned count(T Val, ZeroBehavior) {
+  constexpr static unsigned count(T Val, ZeroBehavior) {
     if (!Val)
       return std::numeric_limits<T>::digits;
 
@@ -181,30 +173,40 @@ template <typename T, std::size_t SizeOfT> struct LeadingZerosCounter {
 
 #if defined(__GNUC__) || defined(_MSC_VER)
 template <typename T> struct LeadingZerosCounter<T, 4> {
-  static unsigned count(T Val, ZeroBehavior ZB) {
+  constexpr static unsigned count(T Val, ZeroBehavior ZB) {
     if (ZB != ZB_Undefined && Val == 0)
       return 32;
 
 #if __has_builtin(__builtin_clz) || defined(__GNUC__)
     return __builtin_clz(Val);
 #elif defined(_MSC_VER)
-    unsigned long Index;
+ #if defined(_M_AMD64)
+   return __lzcnt(Val);
+ #elif  defined(_M_ARM) || defined(_M_ARM64)
+   return _CountLeadingZeros(Val);
+ #elif __has_builtin(__builtin_ctz) || defined(__GNUC__)
+   return __builtin_clz(Val);
+ #else
+    constexpr unsigned long Index;
     _BitScanReverse(&Index, Val);
     return Index ^ 31;
+ #endif
+ #else
+   #error unsupported architecture  
 #endif
   }
 };
 
 #if !defined(_MSC_VER) || defined(_M_X64)
 template <typename T> struct LeadingZerosCounter<T, 8> {
-  static unsigned count(T Val, ZeroBehavior ZB) {
+  constexpr static unsigned count(T Val, ZeroBehavior ZB) {
     if (ZB != ZB_Undefined && Val == 0)
       return 64;
 
 #if __has_builtin(__builtin_clzll) || defined(__GNUC__)
     return __builtin_clzll(Val);
 #elif defined(_MSC_VER)
-    unsigned long Index;
+    constexpr unsigned long Index;
     _BitScanReverse64(&Index, Val);
     return Index ^ 63;
 #endif
