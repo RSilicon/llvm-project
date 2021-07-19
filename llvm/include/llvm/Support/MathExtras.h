@@ -27,15 +27,7 @@
 #endif
 
 #ifdef _MSC_VER
-// Declare these intrinsics manually rather including intrin.h. It's very
-// expensive, and MathExtras.h is popular.
-// #include <intrin.h>
-extern "C" {
-unsigned char _BitScanForward(unsigned long *_Index, unsigned long _Mask);
-unsigned char _BitScanForward64(unsigned long *_Index, unsigned __int64 _Mask);
-unsigned char _BitScanReverse(unsigned long *_Index, unsigned long _Mask);
-unsigned char _BitScanReverse64(unsigned long *_Index, unsigned __int64 _Mask);
-}
+#include <intrin.h>
 #endif
 
 namespace llvm {
@@ -88,12 +80,12 @@ constexpr float ef          = 2.71828183F, // (0x1.5bf0a8P+1) https://oeis.org/A
 
 namespace detail {
 template <typename T, std::size_t SizeOfT> struct TrailingZerosCounter {
-  static unsigned count(T Val, ZeroBehavior) {
+  constexpr static unsigned count(T Val, ZeroBehavior) {
     if (!Val)
-      return std::numeric_limits<T>::digits;
+       return std::numeric_limits<T>::digits;
     if (Val & 0x1)
-      return 0;
-
+       return 0;
+ 
     // Bisection method.
     unsigned ZeroBits = 0;
     T Shift = std::numeric_limits<T>::digits >> 1;
@@ -112,32 +104,46 @@ template <typename T, std::size_t SizeOfT> struct TrailingZerosCounter {
 
 #if defined(__GNUC__) || defined(_MSC_VER)
 template <typename T> struct TrailingZerosCounter<T, 4> {
-  static unsigned count(T Val, ZeroBehavior ZB) {
-    if (ZB != ZB_Undefined && Val == 0)
-      return 32;
+  constexpr static unsigned count(T Val, ZeroBehavior ZB) {
 
 #if __has_builtin(__builtin_ctz) || defined(__GNUC__)
     return __builtin_ctz(Val);
 #elif defined(_MSC_VER)
-    unsigned long Index;
+ #if defined(_M_AMD64)
+   return __tzcnt(Val);
+ #elif  defined(_M_ARM) || defined(_M_ARM64)
+   return _CountTrailingZeros(Val);
+ #else
+    constexpr unsigned long Index = 0;
     _BitScanForward(&Index, Val);
     return Index;
+ #endif
+#else
+   #error unsupported architecture  
 #endif
   }
 };
 
 #if !defined(_MSC_VER) || defined(_M_X64)
 template <typename T> struct TrailingZerosCounter<T, 8> {
-  static unsigned count(T Val, ZeroBehavior ZB) {
+  constexpr static unsigned count(T Val, ZeroBehavior ZB) {
     if (ZB != ZB_Undefined && Val == 0)
       return 64;
 
 #if __has_builtin(__builtin_ctzll) || defined(__GNUC__)
     return __builtin_ctzll(Val);
 #elif defined(_MSC_VER)
-    unsigned long Index;
+ #if defined(_M_AMD64)
+   return __tzcnt(Val);
+ #elif  defined(_M_ARM) || defined(_M_ARM64)
+   return _CountTrailingZeros64(Val);
+ #else
+    constexpr unsigned long Index = 0;
     _BitScanForward64(&Index, Val);
     return Index;
+ #endif
+#else
+   #error unsupported architecture  
 #endif
   }
 };
@@ -153,7 +159,7 @@ template <typename T> struct TrailingZerosCounter<T, 8> {
 /// \param ZB the behavior on an input of 0. Only ZB_Width and ZB_Undefined are
 ///   valid arguments.
 template <typename T>
-unsigned countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
+constexpr unsigned countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
   static_assert(std::numeric_limits<T>::is_integer &&
                     !std::numeric_limits<T>::is_signed,
                 "Only unsigned integral types are allowed.");
@@ -162,9 +168,9 @@ unsigned countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
 
 namespace detail {
 template <typename T, std::size_t SizeOfT> struct LeadingZerosCounter {
-  static unsigned count(T Val, ZeroBehavior) {
+  constexpr static unsigned count(T Val, ZeroBehavior) {
     if (!Val)
-      return std::numeric_limits<T>::digits;
+       return std::numeric_limits<T>::digits;
 
     // Bisection method.
     unsigned ZeroBits = 0;
@@ -181,32 +187,48 @@ template <typename T, std::size_t SizeOfT> struct LeadingZerosCounter {
 
 #if defined(__GNUC__) || defined(_MSC_VER)
 template <typename T> struct LeadingZerosCounter<T, 4> {
-  static unsigned count(T Val, ZeroBehavior ZB) {
+  constexpr static unsigned count(T Val, ZeroBehavior ZB) {
     if (ZB != ZB_Undefined && Val == 0)
       return 32;
 
 #if __has_builtin(__builtin_clz) || defined(__GNUC__)
     return __builtin_clz(Val);
 #elif defined(_MSC_VER)
-    unsigned long Index;
+ #if defined(_M_AMD64)
+   return __lzcnt(Val);
+ #elif  defined(_M_ARM) || defined(_M_ARM64)
+   return _CountLeadingZeros(Val);
+ #else
+    constexpr unsigned long Index = 0;
     _BitScanReverse(&Index, Val);
     return Index ^ 31;
+ #endif
+ #else
+   #error unsupported architecture  
 #endif
   }
 };
 
 #if !defined(_MSC_VER) || defined(_M_X64)
 template <typename T> struct LeadingZerosCounter<T, 8> {
-  static unsigned count(T Val, ZeroBehavior ZB) {
+  constexpr static unsigned count(T Val, ZeroBehavior ZB) {
     if (ZB != ZB_Undefined && Val == 0)
       return 64;
 
 #if __has_builtin(__builtin_clzll) || defined(__GNUC__)
     return __builtin_clzll(Val);
 #elif defined(_MSC_VER)
-    unsigned long Index;
-    _BitScanReverse64(&Index, Val);
-    return Index ^ 63;
+ #if defined(_M_AMD64)
+   return __lzcnt(Val);
+ #elif  defined(_M_ARM) || defined(_M_ARM64)
+   return _CountLeadingZeros64(Val);
+ #else
+    constexpr unsigned long Index = 0
+    _BitScanReverse(&Index, Val);
+    return Index ^ 31;
+ #endif
+ #else
+   #error unsupported architecture  
 #endif
   }
 };
@@ -222,7 +244,7 @@ template <typename T> struct LeadingZerosCounter<T, 8> {
 /// \param ZB the behavior on an input of 0. Only ZB_Width and ZB_Undefined are
 ///   valid arguments.
 template <typename T>
-unsigned countLeadingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
+constexpr unsigned countLeadingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
   static_assert(std::numeric_limits<T>::is_integer &&
                     !std::numeric_limits<T>::is_signed,
                 "Only unsigned integral types are allowed.");
@@ -236,7 +258,7 @@ unsigned countLeadingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
 ///
 /// \param ZB the behavior on an input of 0. Only ZB_Max and ZB_Undefined are
 ///   valid arguments.
-template <typename T> T findFirstSet(T Val, ZeroBehavior ZB = ZB_Max) {
+constexpr template <typename T> T findFirstSet(T Val, ZeroBehavior ZB = ZB_Max) {
   if (ZB == ZB_Max && Val == 0)
     return std::numeric_limits<T>::max();
 
@@ -245,7 +267,7 @@ template <typename T> T findFirstSet(T Val, ZeroBehavior ZB = ZB_Max) {
 
 /// Create a bitmask with the N right-most bits set to 1, and all other
 /// bits set to 0.  Only unsigned types are allowed.
-template <typename T> T maskTrailingOnes(unsigned N) {
+constexpr template <typename T> T maskTrailingOnes(unsigned N) {
   static_assert(std::is_unsigned<T>::value, "Invalid type!");
   const unsigned Bits = CHAR_BIT * sizeof(T);
   assert(N <= Bits && "Invalid bit index");
@@ -254,19 +276,19 @@ template <typename T> T maskTrailingOnes(unsigned N) {
 
 /// Create a bitmask with the N left-most bits set to 1, and all other
 /// bits set to 0.  Only unsigned types are allowed.
-template <typename T> T maskLeadingOnes(unsigned N) {
+constexpr template <typename T> T maskLeadingOnes(unsigned N) {
   return ~maskTrailingOnes<T>(CHAR_BIT * sizeof(T) - N);
 }
 
 /// Create a bitmask with the N right-most bits set to 0, and all other
 /// bits set to 1.  Only unsigned types are allowed.
-template <typename T> T maskTrailingZeros(unsigned N) {
+constexpr template <typename T> T maskTrailingZeros(unsigned N) {
   return maskLeadingOnes<T>(CHAR_BIT * sizeof(T) - N);
 }
 
 /// Create a bitmask with the N left-most bits set to 0, and all other
 /// bits set to 1.  Only unsigned types are allowed.
-template <typename T> T maskLeadingZeros(unsigned N) {
+constexpr template <typename T> T maskLeadingZeros(unsigned N) {
   return maskTrailingOnes<T>(CHAR_BIT * sizeof(T) - N);
 }
 
@@ -277,7 +299,7 @@ template <typename T> T maskLeadingZeros(unsigned N) {
 ///
 /// \param ZB the behavior on an input of 0. Only ZB_Max and ZB_Undefined are
 ///   valid arguments.
-template <typename T> T findLastSet(T Val, ZeroBehavior ZB = ZB_Max) {
+constexpr template <typename T> T findLastSet(T Val, ZeroBehavior ZB = ZB_Max) {
   if (ZB == ZB_Max && Val == 0)
     return std::numeric_limits<T>::max();
 
@@ -314,28 +336,28 @@ T reverseBits(T Val) {
 
 #if __has_builtin(__builtin_bitreverse8)
 template<>
-inline uint8_t reverseBits<uint8_t>(uint8_t Val) {
+constexpr inline uint8_t reverseBits<uint8_t>(uint8_t Val) {
   return __builtin_bitreverse8(Val);
 }
 #endif
 
 #if __has_builtin(__builtin_bitreverse16)
 template<>
-inline uint16_t reverseBits<uint16_t>(uint16_t Val) {
+constexpr inline uint16_t reverseBits<uint16_t>(uint16_t Val) {
   return __builtin_bitreverse16(Val);
 }
 #endif
 
 #if __has_builtin(__builtin_bitreverse32)
 template<>
-inline uint32_t reverseBits<uint32_t>(uint32_t Val) {
+constexpr inline uint32_t reverseBits<uint32_t>(uint32_t Val) {
   return __builtin_bitreverse32(Val);
 }
 #endif
 
 #if __has_builtin(__builtin_bitreverse64)
 template<>
-inline uint64_t reverseBits<uint64_t>(uint64_t Val) {
+constexpr inline uint64_t reverseBits<uint64_t>(uint64_t Val) {
   return __builtin_bitreverse64(Val);
 }
 #endif
