@@ -149,6 +149,8 @@ constexpr unsigned countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
 namespace detail {
 template <typename T, std::size_t SizeOfT> struct LeadingZerosCounter {
   constexpr static unsigned count(T Val, ZeroBehavior) {
+    if (!Val)
+       return std::numeric_limits<T>::digits;
 
     // Bisection method.
     unsigned ZeroBits = 0;
