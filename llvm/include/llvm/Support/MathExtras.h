@@ -81,6 +81,10 @@ constexpr float ef          = 2.71828183F, // (0x1.5bf0a8P+1) https://oeis.org/A
 namespace detail {
 template <typename T, std::size_t SizeOfT> struct TrailingZerosCounter {
   constexpr static unsigned count(T Val, ZeroBehavior) {
+    if (!Val)
+       return std::numeric_limits<T>::digits;
+    if (Val & 0x1)
+       return 0;
  
     // Bisection method.
     unsigned ZeroBits = 0;
