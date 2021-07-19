@@ -84,8 +84,8 @@ template <typename T, std::size_t SizeOfT> struct TrailingZerosCounter {
     if (!Val)
        return std::numeric_limits<T>::digits;
     if (Val & 0x1)
-       return 0;
- 
+      return 0;
+
     // Bisection method.
     unsigned ZeroBits = 0;
     T Shift = std::numeric_limits<T>::digits >> 1;
