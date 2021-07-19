@@ -109,25 +109,41 @@ template <typename T> struct TrailingZerosCounter<T, 4> {
 #if __has_builtin(__builtin_ctz) || defined(__GNUC__)
     return __builtin_ctz(Val);
 #elif defined(_MSC_VER)
-    unsigned long Index;
+ #if defined(_M_AMD64)
+   return __tzcnt(Val);
+ #elif  defined(_M_ARM) || defined(_M_ARM64)
+   return _CountTrailingZeros(Val);
+ #else
+    constexpr unsigned long Index = 0;
     _BitScanForward(&Index, Val);
     return Index;
+ #endif
+#else
+   #error unsupported architecture  
 #endif
   }
 };
 
 #if !defined(_MSC_VER) || defined(_M_X64)
 template <typename T> struct TrailingZerosCounter<T, 8> {
-  static unsigned count(T Val, ZeroBehavior ZB) {
+  constexpr static unsigned count(T Val, ZeroBehavior ZB) {
     if (ZB != ZB_Undefined && Val == 0)
       return 64;
 
 #if __has_builtin(__builtin_ctzll) || defined(__GNUC__)
     return __builtin_ctzll(Val);
 #elif defined(_MSC_VER)
-    unsigned long Index = 0;
+ #if defined(_M_AMD64)
+   return __tzcnt(Val);
+ #elif  defined(_M_ARM) || defined(_M_ARM64)
+   return _CountTrailingZeros64(Val);
+ #else
+    constexpr unsigned long Index = 0;
     _BitScanForward64(&Index, Val);
     return Index;
+ #endif
+#else
+   #error unsupported architecture  
 #endif
   }
 };
