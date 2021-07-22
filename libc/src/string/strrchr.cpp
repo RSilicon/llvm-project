@@ -18,7 +18,7 @@ LLVM_LIBC_FUNCTION(char *, strrchr, (const char *src, int c)) {
   do {
     if (*src == ch)
       last_occurrence = const_cast<char *>(src);
-  } while (*src++);
+  } while (*src++ != '\0');
   return last_occurrence;
 }
 
