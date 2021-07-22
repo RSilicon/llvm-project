@@ -16,7 +16,7 @@ namespace __llvm_libc {
 LLVM_LIBC_FUNCTION(char *, strchr, (const char *src, int c)) {
   const char ch = static_cast<char>(c);
   for (; *src != ch; ++src)
-    if (!*src)
+    if (*src == '\0')
       return nullptr;
 
   return const_cast<char *>(src);
