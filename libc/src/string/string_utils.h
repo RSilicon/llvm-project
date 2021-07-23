@@ -28,7 +28,7 @@ static inline size_t string_length(const char *src) {
 // 'src'. If 'ch' is not found, returns nullptr.
 static inline void *find_first_character(const unsigned char *src,
                                          unsigned char ch, size_t n) {
-  for (; n; --n, ++src)
+  for (; n != 0; --n, ++src)
     if (*src == ch)
       return const_cast<unsigned char *>(src);
   return nullptr;
