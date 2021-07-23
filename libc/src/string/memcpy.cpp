@@ -30,7 +30,7 @@ namespace __llvm_libc {
 //   implementation parameters.
 // - As compilers and processors get better, the generated code is improved
 //   with little change on the code side.
-static void memcpy_impl(char *__restrict dst, const char *__restrict src,
+static void memcpy_impl(unsigned char *__restrict dst, const unsigned char *__restrict src,
                         size_t count) {
   // Use scalar strategies (_1, _2, _3 ...)
   using namespace __llvm_libc::scalar;
@@ -61,8 +61,8 @@ static void memcpy_impl(char *__restrict dst, const char *__restrict src,
 LLVM_LIBC_FUNCTION(void *, memcpy,
                    (void *__restrict dst, const void *__restrict src,
                     size_t size)) {
-  memcpy_impl(reinterpret_cast<char *>(dst),
-              reinterpret_cast<const char *>(src), size);
+  memcpy_impl(reinterpret_cast<unsigned char *>(dst),
+              reinterpret_cast<const unsigned char *>(src), size);
   return dst;
 }
 
