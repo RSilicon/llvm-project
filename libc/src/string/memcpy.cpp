@@ -62,7 +62,7 @@ LLVM_LIBC_FUNCTION(void *, memcpy,
                    (void *__restrict dst, const void *__restrict src,
                     size_t size)) {
   memcpy_impl(reinterpret_cast<unsigned char *>(dst),
-              reinterpret_cast<unsigned const char *>(src), size);
+              reinterpret_cast<const unsigned char *>(src), size);
   return dst;
 }
 
