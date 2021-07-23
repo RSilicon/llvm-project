@@ -32,7 +32,7 @@ namespace __llvm_libc {
 //   implementation parameters.
 // - As compilers and processors get better, the generated code is improved
 //   with little change on the code side.
-static void* strcpy_impl(char *__restrict dst, const char *__restrict src,
+static void strcpy_impl(char *__restrict dst, const char *__restrict src,
                         size_t count) {
   // Use scalar strategies (_1, _2, _3 ...)
   using namespace __llvm_libc::scalar;
@@ -62,8 +62,9 @@ static void* strcpy_impl(char *__restrict dst, const char *__restrict src,
 
 LLVM_LIBC_FUNCTION(char *, strcpy,
                    (char *__restrict dest, const char *__restrict src)) {
-  return reinterpret_cast<char *>(
-      strcpy_impl(dest, src, internal::string_length(src) + 1));
+  strcpy_impl(dest, src, internal::string_length(src) + 1));
+
+  return dst;
 }
 
 } // namespace __llvm_libc
