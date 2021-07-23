@@ -19,7 +19,7 @@ namespace internal {
 // of a null terminator.
 static inline size_t string_length(const char *src) {
   const char *const initial = src;
-  for (; *src; ++src)
+  for (; *src != '\0'; ++src)
     ;
   return src - initial;
 }
@@ -40,9 +40,9 @@ static inline size_t complementary_span(const char *src, const char *segment) {
   const char *const initial = src;
   cpp::Bitset<256> bitset;
 
-  for (; *segment; ++segment)
+  for (; *segment != '\0'; ++segment)
     bitset.set(*segment);
-  for (; *src && !bitset.test(*src); ++src)
+  for (; *src != '\0' && !bitset.test(*src); ++src)
     ;
   return src - initial;
 }
@@ -60,20 +60,20 @@ static inline char *string_token(char *__restrict src,
                                  const char *__restrict delimiter_string,
                                  char **__restrict saveptr) {
   cpp::Bitset<256> delimiter_set;
-  for (; *delimiter_string; ++delimiter_string)
+  for (; *delimiter_string != '\0'; ++delimiter_string)
     delimiter_set.set(*delimiter_string);
 
   src = src ? src : *saveptr;
-  for (; *src && delimiter_set.test(*src); ++src)
+  for (; *src != '\0' && delimiter_set.test(*src); ++src)
     ;
-  if (!*src) {
+  if (*src == '\0') {
     *saveptr = src;
     return nullptr;
   }
   char *token = src;
-  for (; *src && !delimiter_set.test(*src); ++src)
+  for (; *src != '\0' && !delimiter_set.test(*src); ++src)
     ;
-  if (*src) {
+  if (*src != '\0') {
     *src++ = '\0';
   }
   *saveptr = src;
