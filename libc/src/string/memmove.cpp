@@ -15,14 +15,12 @@
 
 namespace __llvm_libc {
 
-static inline void move_byte_forward(unsigned char *dest_m,
-                                    const unsigned char *src_m, size_t count) {
+static inline void move_byte_forward(unsigned char *dest_m, const unsigned char *src_m, size_t count) {
   for (size_t offset = 0; count; --count, ++offset)
     dest_m[offset] = src_m[offset];
 }
 
-static inline void move_byte_backward(unsigned char *dest_m,
-                                    const unsigned char *src_m, size_t count) {
+static inline void move_byte_backward(unsigned char *dest_m, const unsigned char *src_m, size_t count) {
   for (size_t offset = count - 1; count; --count, --offset)
     dest_m[offset] = src_m[offset];
 }
