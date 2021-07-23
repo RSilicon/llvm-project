@@ -29,9 +29,6 @@ static inline void move_byte_backward(unsigned char *dest_m,
 
 LLVM_LIBC_FUNCTION(void *, memmove,
                    (void *dest, const void *src, size_t count)) {
-  if (dest == src)
-    return dest;
-
   unsigned char *dest_c = reinterpret_cast<unsigned char *>(dest);
   const unsigned char *src_c = reinterpret_cast<const unsigned char *>(src);
 
@@ -61,7 +58,7 @@ LLVM_LIBC_FUNCTION(void *, memmove,
   // TODO: Optimize `move_byte_xxx(...)` functions.
   if (dest_c < src_c)
     move_byte_forward(dest_c, src_c, count);
-  else // (dest_c > src_c)
+  else if (dest_c > src_c)
     move_byte_backward(dest_c, src_c, count);
   return dest;
 }
