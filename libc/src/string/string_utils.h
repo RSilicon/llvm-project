@@ -10,7 +10,7 @@
 #define LIBC_SRC_STRING_STRING_UTILS_H
 
 #include "utils/CPP/Bitset.h"
-#include <cstddef> // size_t
+#include <stddef.h> // size_t
 
 namespace __llvm_libc {
 namespace internal {
