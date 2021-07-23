@@ -15,13 +15,13 @@
 
 namespace __llvm_libc {
 
-static inline void move_byte_forward(char *dest_m, const char *src_m,
+static inline void move_byte_forward(unsigned char *dest_m, const unsigned char *src_m,
                                      size_t count) {
   for (size_t offset = 0; count; --count, ++offset)
     dest_m[offset] = src_m[offset];
 }
 
-static inline void move_byte_backward(char *dest_m, const char *src_m,
+static inline void move_byte_backward(unsigned char *dest_m, const unsigned char *src_m,
                                       size_t count) {
   for (size_t offset = count - 1; count; --count, --offset)
     dest_m[offset] = src_m[offset];
@@ -29,8 +29,8 @@ static inline void move_byte_backward(char *dest_m, const char *src_m,
 
 LLVM_LIBC_FUNCTION(void *, memmove,
                    (void *dest, const void *src, size_t count)) {
-  char *dest_c = reinterpret_cast<char *>(dest);
-  const char *src_c = reinterpret_cast<const char *>(src);
+  unsigned char *dest_c = reinterpret_cast<unsigned char *>(dest);
+  const unsigned char *src_c = reinterpret_cast<unsigned const char *>(src);
 
   // If the distance between src_c and dest_c is equal to or greater
   // than count (integerAbs(src_c - dest_c) >= count), they would not overlap.
