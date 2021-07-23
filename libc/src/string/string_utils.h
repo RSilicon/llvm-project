@@ -18,25 +18,26 @@ namespace internal {
 // Returns the length of a string, denoted by the first occurrence
 // of a null terminator.
 static inline size_t string_length(const char *src) {
-  size_t length;
-  for (length = 0; *src; ++src, ++length)
+  const char * const initial = src;
+  for (; *src; ++src)
     ;
-  return length;
+  return src - initial;
 }
 
 // Returns the first occurrence of 'ch' within the first 'n' characters of
 // 'src'. If 'ch' is not found, returns nullptr.
 static inline void *find_first_character(const unsigned char *src,
                                          unsigned char ch, size_t n) {
-  for (; n && *src != ch; --n, ++src)
-    ;
-  return n ? const_cast<unsigned char *>(src) : nullptr;
+  for (; n; --n, ++src)
+    if (*src == ch)
+      return const_cast<unsigned char *>(src);
+  return nullptr;
 }
 
 // Returns the maximum length span that contains only characters not found in
 // 'segment'. If no characters are found, returns the length of 'src'.
 static inline size_t complementary_span(const char *src, const char *segment) {
-  const char *initial = src;
+  const char * const initial = src;
   cpp::Bitset<256> bitset;
 
   for (; *segment; ++segment)
@@ -73,8 +74,7 @@ static inline char *string_token(char *__restrict src,
   for (; *src && !delimiter_set.test(*src); ++src)
     ;
   if (*src) {
-    *src = '\0';
-    ++src;
+    *src++ = '\0';
   }
   *saveptr = src;
   return token;
