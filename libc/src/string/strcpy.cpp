@@ -63,7 +63,7 @@ static void strcpy_impl(char *__restrict dst, const char *__restrict src,
 LLVM_LIBC_FUNCTION(char *, strcpy,
                    (char *__restrict dest, const char *__restrict src)) {
   strcpy_impl(dest, src, internal::string_length(src) + 1));
-  return dst;
+  return dest;
 }
 
 } // namespace __llvm_libc
