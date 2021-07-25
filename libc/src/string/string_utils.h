@@ -18,30 +18,31 @@ namespace internal {
 // Returns the length of a string, denoted by the first occurrence
 // of a null terminator.
 static inline size_t string_length(const char *src) {
-  size_t length;
-  for (length = 0; *src; ++src, ++length)
+  const char *const initial = src;
+  for (; *src != '\0'; ++src)
     ;
-  return length;
+  return src - initial;
 }
 
 // Returns the first occurrence of 'ch' within the first 'n' characters of
 // 'src'. If 'ch' is not found, returns nullptr.
 static inline void *find_first_character(const unsigned char *src,
                                          unsigned char ch, size_t n) {
-  for (; n && *src != ch; --n, ++src)
-    ;
-  return n ? const_cast<unsigned char *>(src) : nullptr;
+  for (; n != 0; --n, ++src)
+    if (*src == ch)
+      return const_cast<unsigned char *>(src);
+  return nullptr;
 }
 
 // Returns the maximum length span that contains only characters not found in
 // 'segment'. If no characters are found, returns the length of 'src'.
 static inline size_t complementary_span(const char *src, const char *segment) {
-  const char *initial = src;
+  const char *const initial = src;
   cpp::Bitset<256> bitset;
 
-  for (; *segment; ++segment)
+  for (; *segment != '\0'; ++segment)
     bitset.set(*segment);
-  for (; *src && !bitset.test(*src); ++src)
+  for (; *src != '\0' && !bitset.test(*src); ++src)
     ;
   return src - initial;
 }
@@ -59,22 +60,21 @@ static inline char *string_token(char *__restrict src,
                                  const char *__restrict delimiter_string,
                                  char **__restrict saveptr) {
   cpp::Bitset<256> delimiter_set;
-  for (; *delimiter_string; ++delimiter_string)
+  for (; *delimiter_string != '\0'; ++delimiter_string)
     delimiter_set.set(*delimiter_string);
 
   src = src ? src : *saveptr;
-  for (; *src && delimiter_set.test(*src); ++src)
+  for (; *src != '\0' && delimiter_set.test(*src); ++src)
     ;
-  if (!*src) {
+  if (*src == '\0') {
     *saveptr = src;
     return nullptr;
   }
   char *token = src;
-  for (; *src && !delimiter_set.test(*src); ++src)
+  for (; *src != '\0' && !delimiter_set.test(*src); ++src)
     ;
-  if (*src) {
-    *src = '\0';
-    ++src;
+  if (*src != '\0') {
+    *src++ = '\0';
   }
   *saveptr = src;
   return token;
