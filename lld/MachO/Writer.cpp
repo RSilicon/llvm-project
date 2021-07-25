@@ -630,7 +630,12 @@ static void prepareSymbolRelocation(Symbol *sym, const InputSection *isec,
 
 void Writer::scanRelocations() {
   TimeTraceScope timeScope("Scan relocations");
-  for (ConcatInputSection *isec : inputSections) {
+
+  // This can't use a for-each loop: It calls treatUndefinedSymbol(), which can
+  // add to inputSections, which invalidates inputSections's iterators.
+  for (size_t i = 0; i < inputSections.size(); ++i) {
+    ConcatInputSection *isec = inputSections[i];
+
     if (isec->shouldOmitFromOutput())
       continue;
 
@@ -987,6 +992,7 @@ void Writer::finalizeAddresses() {
     addr = alignTo(addr, pageSize);
     seg->vmSize = addr - seg->addr;
     seg->fileSize = fileOff - seg->fileOff;
+    seg->assignAddressesToStartEndSymbols();
   }
 }
 
@@ -1029,6 +1035,7 @@ void Writer::assignAddresses(OutputSegment *seg) {
     osec->addr = addr;
     osec->fileOff = isZeroFill(osec->flags) ? 0 : fileOff;
     osec->finalize();
+    osec->assignAddressesToStartEndSymbols();
 
     addr += osec->getSize();
     fileOff += osec->getFileSize();
