@@ -29,17 +29,9 @@ template <typename Element>
 void Copy(char *__restrict dst, const char *__restrict src) {
   Element::Copy(dst, src);
 }
-template <typename Element>
-void Copy(unsigned char *__restrict dst, const unsigned char *__restrict src) {
-  Element::Copy(dst, src);
-}
 // Runtime-size copies from 'src' to 'dst'.
 template <typename Element>
 void Copy(char *__restrict dst, const char *__restrict src, size_t size) {
-  Element::Copy(dst, src, size);
-}
-template <typename Element>
-void Copy(unsigned char *__restrict dst, const unsigned char *__restrict src, size_t size) {
   Element::Copy(dst, src, size);
 }
 
@@ -128,11 +120,6 @@ template <typename Head, typename... Tail> struct Chained<Head, Tail...> {
   static constexpr size_t kSize = Head::kSize + Chained<Tail...>::kSize;
 
   static void Copy(char *__restrict dst, const char *__restrict src) {
-    Chained<Tail...>::Copy(dst + Head::kSize, src + Head::kSize);
-    __llvm_libc::Copy<Head>(dst, src);
-  }
-
-  static void Copy(unsigned char *__restrict dst, const unsigned char *__restrict src) {
     Chained<Tail...>::Copy(dst + Head::kSize, src + Head::kSize);
     __llvm_libc::Copy<Head>(dst, src);
   }

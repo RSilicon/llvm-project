@@ -17,8 +17,7 @@ namespace __llvm_libc {
 // TODO: Look at performance benefits of comparing words.
 LLVM_LIBC_FUNCTION(void *, memchr, (const void *src, int c, size_t n)) {
   return internal::find_first_character(
-      reinterpret_cast<const unsigned char *>(src),
-      static_cast<unsigned char>(c), n);
+      reinterpret_cast<const unsigned char *>(src), c, n);
 }
 
 } // namespace __llvm_libc
