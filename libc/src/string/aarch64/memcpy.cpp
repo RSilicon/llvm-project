@@ -42,7 +42,7 @@ using _64 = Repeated<scalar::UINT64, 8>;
 //   with little change on the code side.
 // This implementation has been tuned for Neoverse-N1.
 static void memcpy_aarch64(char *__restrict dst, const char *__restrict src,
-                           size_t count) {
+                           size_t count) noexcept {
   if (count == 0)
     return;
   if (count == 1)
@@ -68,7 +68,8 @@ static void memcpy_aarch64(char *__restrict dst, const char *__restrict src,
 
 LLVM_LIBC_FUNCTION(void *, memcpy,
                    (void *__restrict dst, const void *__restrict src,
-                    size_t size)) {
+                    size_t size))
+noexcept {
   memcpy_aarch64(reinterpret_cast<char *>(dst),
                  reinterpret_cast<const char *>(src), size);
   return dst;

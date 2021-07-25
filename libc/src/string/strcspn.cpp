@@ -13,7 +13,8 @@
 
 namespace __llvm_libc {
 
-LLVM_LIBC_FUNCTION(size_t, strcspn, (const char *src, const char *segment)) {
+LLVM_LIBC_FUNCTION(size_t, strcspn, (const char *src, const char *segment))
+noexcept {
   return internal::complementary_span(src, segment);
 }
 

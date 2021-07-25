@@ -17,7 +17,7 @@ namespace internal {
 
 // Returns the length of a string, denoted by the first occurrence
 // of a null terminator.
-static inline size_t string_length(const char *src) {
+static inline size_t string_length(const char *src) noexcept {
   const char *const initial = src;
   for (; *src != '\0'; ++src)
     ;
@@ -27,7 +27,7 @@ static inline size_t string_length(const char *src) {
 // Returns the first occurrence of 'ch' within the first 'n' characters of
 // 'src'. If 'ch' is not found, returns nullptr.
 static inline void *find_first_character(const unsigned char *src,
-                                         unsigned char ch, size_t n) {
+                                         unsigned char ch, size_t n) noexcept {
   for (; n != 0; --n, ++src)
     if (*src == ch)
       return const_cast<unsigned char *>(src);
@@ -36,7 +36,8 @@ static inline void *find_first_character(const unsigned char *src,
 
 // Returns the maximum length span that contains only characters not found in
 // 'segment'. If no characters are found, returns the length of 'src'.
-static inline size_t complementary_span(const char *src, const char *segment) {
+static inline size_t complementary_span(const char *src,
+                                        const char *segment) noexcept {
   const char *const initial = src;
   cpp::Bitset<256> bitset;
 
@@ -58,7 +59,7 @@ static inline size_t complementary_span(const char *src, const char *segment) {
 // terminating character is reached, returns a nullptr.
 static inline char *string_token(char *__restrict src,
                                  const char *__restrict delimiter_string,
-                                 char **__restrict saveptr) {
+                                 char **__restrict saveptr) noexcept {
   cpp::Bitset<256> delimiter_set;
   for (; *delimiter_string != '\0'; ++delimiter_string)
     delimiter_set.set(*delimiter_string);

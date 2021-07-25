@@ -12,7 +12,7 @@
 
 namespace __llvm_libc {
 
-LLVM_LIBC_FUNCTION(char *, strrchr, (const char *src, int c)) {
+LLVM_LIBC_FUNCTION(char *, strrchr, (const char *src, int c)) noexcept {
   const char ch = static_cast<char>(c);
   char *last_occurrence = nullptr;
   do {

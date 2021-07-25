@@ -14,20 +14,21 @@
 namespace __llvm_libc {
 namespace aarch64 {
 
-static int memcmp_impl(const char *lhs, const char *rhs, size_t count) {
+static int memcmp_impl(const char *lhs, const char *rhs,
+                       size_t count) noexcept {
   if (count == 0)
     return 0;
   if (count == 1)
     return ThreeWayCompare<_1>(lhs, rhs);
-  else if (count == 2)
+  if (count == 2)
     return ThreeWayCompare<_2>(lhs, rhs);
-  else if (count == 3)
+  if (count == 3)
     return ThreeWayCompare<_3>(lhs, rhs);
-  else if (count < 8)
+  if (count < 8)
     return ThreeWayCompare<HeadTail<_4>>(lhs, rhs, count);
-  else if (count < 16)
+  if (count < 16)
     return ThreeWayCompare<HeadTail<_8>>(lhs, rhs, count);
-  else if (count < 128) {
+  if (count < 128) {
     if (Equals<_16>(lhs, rhs)) {
       if (count < 32)
         return ThreeWayCompare<Tail<_16>>(lhs, rhs, count);
@@ -49,11 +50,11 @@ static int memcmp_impl(const char *lhs, const char *rhs, size_t count) {
 } // namespace aarch64
 
 LLVM_LIBC_FUNCTION(int, memcmp,
-                   (const void *lhs, const void *rhs, size_t count)) {
+                   (const void *lhs, const void *rhs, size_t count))
+noexcept {
 
-  const char *_lhs = reinterpret_cast<const char *>(lhs);
-  const char *_rhs = reinterpret_cast<const char *>(rhs);
-  return aarch64::memcmp_impl(_lhs, _rhs, count);
+  return aarch64::memcmp_impl(reinterpret_cast<const char *>(lhs),
+                              reinterpret_cast<const char *>(rhs), count);
 }
 
 } // namespace __llvm_libc

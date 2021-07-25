@@ -26,44 +26,46 @@ namespace __llvm_libc {
 
 // Fixed-size copies from 'src' to 'dst'.
 template <typename Element>
-void Copy(char *__restrict dst, const char *__restrict src) {
+void Copy(char *__restrict dst, const char *__restrict src) noexcept {
   Element::Copy(dst, src);
 }
 // Runtime-size copies from 'src' to 'dst'.
 template <typename Element>
-void Copy(char *__restrict dst, const char *__restrict src, size_t size) {
+void Copy(char *__restrict dst, const char *__restrict src,
+          size_t size) noexcept {
   Element::Copy(dst, src, size);
 }
 
 // Fixed-size equality between 'lhs' and 'rhs'.
-template <typename Element> bool Equals(const char *lhs, const char *rhs) {
+template <typename Element>
+bool Equals(const char *lhs, const char *rhs) noexcept {
   return Element::Equals(lhs, rhs);
 }
 // Runtime-size equality between 'lhs' and 'rhs'.
 template <typename Element>
-bool Equals(const char *lhs, const char *rhs, size_t size) {
+bool Equals(const char *lhs, const char *rhs, size_t size) noexcept {
   return Element::Equals(lhs, rhs, size);
 }
 
 // Fixed-size three-way comparison between 'lhs' and 'rhs'.
 template <typename Element>
-int ThreeWayCompare(const char *lhs, const char *rhs) {
+int ThreeWayCompare(const char *lhs, const char *rhs) noexcept {
   return Element::ThreeWayCompare(lhs, rhs);
 }
 // Runtime-size three-way comparison between 'lhs' and 'rhs'.
 template <typename Element>
-int ThreeWayCompare(const char *lhs, const char *rhs, size_t size) {
+int ThreeWayCompare(const char *lhs, const char *rhs, size_t size) noexcept {
   return Element::ThreeWayCompare(lhs, rhs, size);
 }
 
 // Fixed-size initialization.
 template <typename Element>
-void SplatSet(char *dst, const unsigned char value) {
+void SplatSet(char *dst, const unsigned char value) noexcept {
   Element::SplatSet(dst, value);
 }
 // Runtime-size initialization.
 template <typename Element>
-void SplatSet(char *dst, const unsigned char value, size_t size) {
+void SplatSet(char *dst, const unsigned char value, size_t size) noexcept {
   Element::SplatSet(dst, value, size);
 }
 
@@ -76,14 +78,14 @@ void SplatSet(char *dst, const unsigned char value, size_t size) {
 template <typename Element, size_t ElementCount> struct Repeated {
   static constexpr size_t kSize = ElementCount * Element::kSize;
 
-  static void Copy(char *__restrict dst, const char *__restrict src) {
+  static void Copy(char *__restrict dst, const char *__restrict src) noexcept {
     for (size_t i = 0; i < ElementCount; ++i) {
       const size_t offset = i * Element::kSize;
       Element::Copy(dst + offset, src + offset);
     }
   }
 
-  static bool Equals(const char *lhs, const char *rhs) {
+  static bool Equals(const char *lhs, const char *rhs) noexcept {
     for (size_t i = 0; i < ElementCount; ++i) {
       const size_t offset = i * Element::kSize;
       if (!Element::Equals(lhs + offset, rhs + offset))
@@ -92,7 +94,7 @@ template <typename Element, size_t ElementCount> struct Repeated {
     return true;
   }
 
-  static int ThreeWayCompare(const char *lhs, const char *rhs) {
+  static int ThreeWayCompare(const char *lhs, const char *rhs) noexcept {
     for (size_t i = 0; i < ElementCount; ++i) {
       const size_t offset = i * Element::kSize;
       // We make the assumption that 'Equals' si cheaper than 'ThreeWayCompare'.
@@ -102,7 +104,7 @@ template <typename Element, size_t ElementCount> struct Repeated {
     return 0;
   }
 
-  static void SplatSet(char *dst, const unsigned char value) {
+  static void SplatSet(char *dst, const unsigned char value) noexcept {
     for (size_t i = 0; i < ElementCount; ++i) {
       const size_t offset = i * Element::kSize;
       Element::SplatSet(dst + offset, value);
@@ -118,25 +120,25 @@ template <typename... Types> struct Chained;
 template <typename Head, typename... Tail> struct Chained<Head, Tail...> {
   static constexpr size_t kSize = Head::kSize + Chained<Tail...>::kSize;
 
-  static void Copy(char *__restrict dst, const char *__restrict src) {
+  static void Copy(char *__restrict dst, const char *__restrict src) noexcept {
     Chained<Tail...>::Copy(dst + Head::kSize, src + Head::kSize);
     __llvm_libc::Copy<Head>(dst, src);
   }
 
-  static bool Equals(const char *lhs, const char *rhs) {
+  static bool Equals(const char *lhs, const char *rhs) noexcept {
     if (!__llvm_libc::Equals<Head>(lhs, rhs))
       return false;
     return Chained<Tail...>::Equals(lhs + Head::kSize, rhs + Head::kSize);
   }
 
-  static int ThreeWayCompare(const char *lhs, const char *rhs) {
+  static int ThreeWayCompare(const char *lhs, const char *rhs) noexcept {
     if (!__llvm_libc::Equals<Head>(lhs, rhs))
       return __llvm_libc::ThreeWayCompare<Head>(lhs, rhs);
     return Chained<Tail...>::ThreeWayCompare(lhs + Head::kSize,
                                              rhs + Head::kSize);
   }
 
-  static void SplatSet(char *dst, const unsigned char value) {
+  static void SplatSet(char *dst, const unsigned char value) noexcept {
     Chained<Tail...>::SplatSet(dst + Head::kSize, value);
     __llvm_libc::SplatSet<Head>(dst, value);
   }
@@ -167,23 +169,25 @@ template <> struct Chained<> {
 // Precondition: `size >= T::kSize`.
 template <typename T> struct Tail {
   static void Copy(char *__restrict dst, const char *__restrict src,
-                   size_t size) {
+                   size_t size) noexcept {
     return T::Copy(dst + offset(size), src + offset(size));
   }
 
-  static bool Equals(const char *lhs, const char *rhs, size_t size) {
+  static bool Equals(const char *lhs, const char *rhs, size_t size) noexcept {
     return T::Equals(lhs + offset(size), rhs + offset(size));
   }
 
-  static int ThreeWayCompare(const char *lhs, const char *rhs, size_t size) {
+  static int ThreeWayCompare(const char *lhs, const char *rhs,
+                             size_t size) noexcept {
     return T::ThreeWayCompare(lhs + offset(size), rhs + offset(size));
   }
 
-  static void SplatSet(char *dst, const unsigned char value, size_t size) {
+  static void SplatSet(char *dst, const unsigned char value,
+                       size_t size) noexcept {
     return T::SplatSet(dst + offset(size), value);
   }
 
-  static size_t offset(size_t size) { return size - T::kSize; }
+  static size_t offset(size_t size) noexcept { return size - T::kSize; }
 };
 
 // Perform the operation on the first and last 'T::kSize' bytes of the buffer.
@@ -198,24 +202,26 @@ template <typename T> struct Tail {
 // Precondition: `size >= T::kSize && size <= 2 x T::kSize`.
 template <typename T> struct HeadTail {
   static void Copy(char *__restrict dst, const char *__restrict src,
-                   size_t size) {
+                   size_t size) noexcept {
     T::Copy(dst, src);
     Tail<T>::Copy(dst, src, size);
   }
 
-  static bool Equals(const char *lhs, const char *rhs, size_t size) {
+  static bool Equals(const char *lhs, const char *rhs, size_t size) noexcept {
     if (!T::Equals(lhs, rhs))
       return false;
     return Tail<T>::Equals(lhs, rhs, size);
   }
 
-  static int ThreeWayCompare(const char *lhs, const char *rhs, size_t size) {
+  static int ThreeWayCompare(const char *lhs, const char *rhs,
+                             size_t size) noexcept {
     if (!T::Equals(lhs, rhs))
       return T::ThreeWayCompare(lhs, rhs);
     return Tail<T>::ThreeWayCompare(lhs, rhs, size);
   }
 
-  static void SplatSet(char *dst, const unsigned char value, size_t size) {
+  static void SplatSet(char *dst, const unsigned char value,
+                       size_t size) noexcept {
     T::SplatSet(dst, value);
     Tail<T>::SplatSet(dst, value, size);
   }
@@ -355,7 +361,7 @@ namespace builtin {
 template <size_t Size> struct Builtin {
   static constexpr size_t kSize = Size;
 
-  static void Copy(char *__restrict dst, const char *__restrict src) {
+  static void Copy(char *__restrict dst, const char *__restrict src) noexcept {
 #if LLVM_LIBC_HAVE_MEMORY_SANITIZER || LLVM_LIBC_HAVE_ADDRESS_SANITIZER
     ForLoopCopy(dst, src);
 #elif __has_builtin(__builtin_memcpy_inline)
@@ -375,15 +381,15 @@ template <size_t Size> struct Builtin {
 #define LLVM_LIBC_MEMCMP __builtin_memcmp
 #endif
 
-  static bool Equals(const char *lhs, const char *rhs) {
+  static bool Equals(const char *lhs, const char *rhs) noexcept {
     return LLVM_LIBC_MEMCMP(lhs, rhs, kSize) == 0;
   }
 
-  static int ThreeWayCompare(const char *lhs, const char *rhs) {
+  static int ThreeWayCompare(const char *lhs, const char *rhs) noexcept {
     return LLVM_LIBC_MEMCMP(lhs, rhs, kSize);
   }
 
-  static void SplatSet(char *dst, const unsigned char value) {
+  static void SplatSet(char *dst, const unsigned char value) noexcept {
     __builtin_memset(dst, value, kSize);
   }
 
@@ -391,7 +397,8 @@ private:
   // Copies `kSize` bytes from `src` to `dst` using a for loop.
   // This code requires the use of `-fno-buitin-memcpy` to prevent the compiler
   // from turning the for-loop back into `__builtin_memcpy`.
-  static void ForLoopCopy(char *__restrict dst, const char *__restrict src) {
+  static void ForLoopCopy(char *__restrict dst,
+                          const char *__restrict src) noexcept {
     for (size_t i = 0; i < kSize; ++i)
       dst[i] = src[i];
   }
@@ -417,58 +424,62 @@ namespace scalar {
 template <typename T> struct Scalar {
   static constexpr size_t kSize = sizeof(T);
 
-  static void Copy(char *__restrict dst, const char *__restrict src) {
+  static void Copy(char *__restrict dst, const char *__restrict src) noexcept {
     Store(dst, Load(src));
   }
 
-  static bool Equals(const char *lhs, const char *rhs) {
+  static bool Equals(const char *lhs, const char *rhs) noexcept {
     return Load(lhs) == Load(rhs);
   }
 
-  static int ThreeWayCompare(const char *lhs, const char *rhs) {
+  static int ThreeWayCompare(const char *lhs, const char *rhs) noexcept {
     return ScalarThreeWayCompare(Load(lhs), Load(rhs));
   }
 
-  static void SplatSet(char *dst, const unsigned char value) {
+  static void SplatSet(char *dst, const unsigned char value) noexcept {
     Store(dst, GetSplattedValue(value));
   }
 
   static int ScalarThreeWayCompare(T a, T b);
 
 private:
-  static T Load(const char *ptr) {
+  static T Load(const char *ptr) noexcept {
     T value;
     builtin::Builtin<kSize>::Copy(reinterpret_cast<char *>(&value), ptr);
     return value;
   }
-  static void Store(char *ptr, T value) {
+  static void Store(char *ptr, T value) noexcept {
     builtin::Builtin<kSize>::Copy(ptr, reinterpret_cast<const char *>(&value));
   }
-  static T GetSplattedValue(const unsigned char value) {
+  static T GetSplattedValue(const unsigned char value) noexcept {
     return T(~0) / T(0xFF) * T(value);
   }
 };
 
 template <>
-inline int Scalar<uint8_t>::ScalarThreeWayCompare(uint8_t a, uint8_t b) {
+inline int Scalar<uint8_t>::ScalarThreeWayCompare(uint8_t a,
+                                                  uint8_t b) noexcept {
   const int16_t la = Endian::ToBigEndian(a);
   const int16_t lb = Endian::ToBigEndian(b);
   return la - lb;
 }
 template <>
-inline int Scalar<uint16_t>::ScalarThreeWayCompare(uint16_t a, uint16_t b) {
+inline int Scalar<uint16_t>::ScalarThreeWayCompare(uint16_t a,
+                                                   uint16_t b) noexcept {
   const int32_t la = Endian::ToBigEndian(a);
   const int32_t lb = Endian::ToBigEndian(b);
   return la - lb;
 }
 template <>
-inline int Scalar<uint32_t>::ScalarThreeWayCompare(uint32_t a, uint32_t b) {
+inline int Scalar<uint32_t>::ScalarThreeWayCompare(uint32_t a,
+                                                   uint32_t b) noexcept {
   const uint32_t la = Endian::ToBigEndian(a);
   const uint32_t lb = Endian::ToBigEndian(b);
   return la > lb ? 1 : la < lb ? -1 : 0;
 }
 template <>
-inline int Scalar<uint64_t>::ScalarThreeWayCompare(uint64_t a, uint64_t b) {
+inline int Scalar<uint64_t>::ScalarThreeWayCompare(uint64_t a,
+                                                   uint64_t b) noexcept {
   const uint64_t la = Endian::ToBigEndian(a);
   const uint64_t lb = Endian::ToBigEndian(b);
   return la > lb ? 1 : la < lb ? -1 : 0;

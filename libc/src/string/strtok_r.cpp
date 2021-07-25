@@ -16,7 +16,8 @@ namespace __llvm_libc {
 LLVM_LIBC_FUNCTION(char *, strtok_r,
                    (char *__restrict src,
                     const char *__restrict delimiter_string,
-                    char **__restrict saveptr)) {
+                    char **__restrict saveptr))
+noexcept {
   return internal::string_token(src, delimiter_string, saveptr);
 }
 

@@ -16,14 +16,14 @@
 namespace __llvm_libc {
 
 static inline void move_byte_forward(unsigned char *dest_m,
-                                     const unsigned char *src_m, size_t count) {
+                                     const unsigned char *src_m, size_t count) noexcept {
   for (size_t offset = 0; offset != count; ++offset)
     dest_m[offset] = src_m[offset];
 }
 
 static inline void move_byte_backward(unsigned char *dest_m,
                                       const unsigned char *src_m,
-                                      size_t count) {
+                                      size_t count) noexcept {
   if (count != 0) { // Avoid underflow
     for (size_t offset = count - 1; offset != 0; --offset)
       dest_m[offset] = src_m[offset];
@@ -31,7 +31,7 @@ static inline void move_byte_backward(unsigned char *dest_m,
 }
 
 LLVM_LIBC_FUNCTION(void *, memmove,
-                   (void *dest, const void *src, size_t count)) {
+                   (void *dest, const void *src, size_t count)) noexcept {
   unsigned char *dest_c = reinterpret_cast<unsigned char *>(dest);
   const unsigned char *src_c = reinterpret_cast<const unsigned char *>(src);
 

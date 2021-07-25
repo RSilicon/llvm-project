@@ -48,7 +48,7 @@ namespace __llvm_libc {
 // may waste up to 31 Bytes. Benchmarks showed that SetAlignedBlocks<64> was not
 // superior for sizes that mattered.
 inline static void GeneralPurposeMemset(char *dst, unsigned char value,
-                                        size_t count) {
+                                        size_t count) noexcept {
 #if defined(__i386__) || defined(__x86_64__)
   using namespace ::__llvm_libc::x86;
 #else

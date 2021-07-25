@@ -17,7 +17,8 @@ static char *strtok_str = nullptr;
 
 LLVM_LIBC_FUNCTION(char *, strtok,
                    (char *__restrict src,
-                    const char *__restrict delimiter_string)) {
+                    const char *__restrict delimiter_string))
+noexcept {
   return internal::string_token(src, delimiter_string, &strtok_str);
 }
 

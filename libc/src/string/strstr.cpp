@@ -15,7 +15,8 @@ namespace __llvm_libc {
 
 // TODO: This is a simple brute force implementation. This can be
 // improved upon using well known string matching algorithms.
-LLVM_LIBC_FUNCTION(char *, strstr, (const char *haystack, const char *needle)) {
+LLVM_LIBC_FUNCTION(char *, strstr, (const char *haystack, const char *needle))
+noexcept {
   for (size_t i = 0; haystack[i]; ++i) {
     size_t j;
     for (j = 0; haystack[i + j] && haystack[i + j] == needle[j]; ++j)
