@@ -21,8 +21,9 @@ namespace __llvm_libc {
 // --------------------------------
 // We define abstract elementary operations acting on fixed chunks of memory.
 // These are low level building blocks that are meant to be assembled to compose
-// higher order abstractions. Each function is defined twice: once with
-// fixed-size operations, and once with runtime-size operations.
+// higher order abstractions. Each function is defined four times: one with
+// fixed-size operations, and one with runtime-size operations, twice with one
+// for signed chars, and one for unsigned chars
 
 // Fixed-size copies from 'src' to 'dst'.
 template <typename Element>
@@ -48,9 +49,17 @@ void Copy(unsigned char *__restrict dst, const unsigned char *__restrict src,
 template <typename Element> bool Equals(const char *lhs, const char *rhs) {
   return Element::Equals(lhs, rhs);
 }
+template <typename Element>
+bool Equals(const unsigned char *lhs, const unsigned char *rhs) {
+  return Element::Equals(lhs, rhs);
+}
 // Runtime-size equality between 'lhs' and 'rhs'.
 template <typename Element>
 bool Equals(const char *lhs, const char *rhs, size_t size) {
+  return Element::Equals(lhs, rhs, size);
+}
+template <typename Element>
+bool Equals(const unsigned char *lhs, const unsigned char *rhs, size_t size) {
   return Element::Equals(lhs, rhs, size);
 }
 
@@ -92,7 +101,24 @@ template <typename Element, size_t ElementCount> struct Repeated {
     }
   }
 
+  static void Copy(unsigned char *__restrict dst,
+                   const unsigned char *__restrict src) {
+    for (size_t i = 0; i < ElementCount; ++i) {
+      const size_t offset = i * Element::kSize;
+      Element::Copy(dst + offset, src + offset);
+    }
+  }
+
   static bool Equals(const char *lhs, const char *rhs) {
+    for (size_t i = 0; i < ElementCount; ++i) {
+      const size_t offset = i * Element::kSize;
+      if (!Element::Equals(lhs + offset, rhs + offset))
+        return false;
+    }
+    return true;
+  }
+
+  static bool Equals(const unsigned char *lhs, const unsigned char *rhs) {
     for (size_t i = 0; i < ElementCount; ++i) {
       const size_t offset = i * Element::kSize;
       if (!Element::Equals(lhs + offset, rhs + offset))
@@ -105,14 +131,31 @@ template <typename Element, size_t ElementCount> struct Repeated {
     for (size_t i = 0; i < ElementCount; ++i) {
       const size_t offset = i * Element::kSize;
       // We make the assumption that 'Equals' si cheaper than 'ThreeWayCompare'.
-      if (Element::Equals(lhs + offset, rhs + offset))
-        continue;
-      return Element::ThreeWayCompare(lhs + offset, rhs + offset);
+      if (!Element::Equals(lhs + offset, rhs + offset))
+        return Element::ThreeWayCompare(lhs + offset, rhs + offset);
+    }
+    return 0;
+  }
+
+  static int ThreeWayCompare(const unsigned char *lhs,
+                             const unsigned char *rhs) {
+    for (size_t i = 0; i < ElementCount; ++i) {
+      const size_t offset = i * Element::kSize;
+      // We make the assumption that 'Equals' si cheaper than 'ThreeWayCompare'.
+      if (!Element::Equals(lhs + offset, rhs + offset))
+        return Element::ThreeWayCompare(lhs + offset, rhs + offset);
     }
     return 0;
   }
 
   static void SplatSet(char *dst, const unsigned char value) {
+    for (size_t i = 0; i < ElementCount; ++i) {
+      const size_t offset = i * Element::kSize;
+      Element::SplatSet(dst + offset, value);
+    }
+  }
+
+  static void SplatSet(unsigned char *dst, const unsigned char value) {
     for (size_t i = 0; i < ElementCount; ++i) {
       const size_t offset = i * Element::kSize;
       Element::SplatSet(dst + offset, value);
@@ -145,14 +188,33 @@ template <typename Head, typename... Tail> struct Chained<Head, Tail...> {
     return Chained<Tail...>::Equals(lhs + Head::kSize, rhs + Head::kSize);
   }
 
+  static bool Equals(const unsigned char *lhs, const unsigned char *rhs) {
+    if (!__llvm_libc::Equals<Head>(lhs, rhs))
+      return false;
+    return Chained<Tail...>::Equals(lhs + Head::kSize, rhs + Head::kSize);
+  }
+
   static int ThreeWayCompare(const char *lhs, const char *rhs) {
-    if (__llvm_libc::Equals<Head>(lhs, rhs))
-      return Chained<Tail...>::ThreeWayCompare(lhs + Head::kSize,
-                                               rhs + Head::kSize);
-    return __llvm_libc::ThreeWayCompare<Head>(lhs, rhs);
+    if (!__llvm_libc::Equals<Head>(lhs, rhs))
+      return __llvm_libc::ThreeWayCompare<Head>(lhs, rhs);
+    return Chained<Tail...>::ThreeWayCompare(lhs + Head::kSize,
+                                             rhs + Head::kSize);
+  }
+
+  static int ThreeWayCompare(const unsigned char *lhs,
+                             const unsigned char *rhs) {
+    if (!__llvm_libc::Equals<Head>(lhs, rhs))
+      return __llvm_libc::ThreeWayCompare<Head>(lhs, rhs);
+    return Chained<Tail...>::ThreeWayCompare(lhs + Head::kSize,
+                                             rhs + Head::kSize);
   }
 
   static void SplatSet(char *dst, const unsigned char value) {
+    Chained<Tail...>::SplatSet(dst + Head::kSize, value);
+    __llvm_libc::SplatSet<Head>(dst, value);
+  }
+
+  static void SplatSet(unsigned char *dst, const unsigned char value) {
     Chained<Tail...>::SplatSet(dst + Head::kSize, value);
     __llvm_libc::SplatSet<Head>(dst, value);
   }
@@ -161,9 +223,19 @@ template <typename Head, typename... Tail> struct Chained<Head, Tail...> {
 template <> struct Chained<> {
   static constexpr size_t kSize = 0;
   static void Copy(char *__restrict dst, const char *__restrict src) {}
+  static void Copy(unsigned char *__restrict dst,
+                   const unsigned char *__restrict src) {}
   static bool Equals(const char *lhs, const char *rhs) { return true; }
+  static bool Equals(const unsigned char *lhs, const unsigned char *rhs) {
+    return true;
+  }
   static int ThreeWayCompare(const char *lhs, const char *rhs) { return 0; }
+  static int ThreeWayCompare(const unsigned char *lhs,
+                             const unsigned char *rhs) {
+    return 0;
+  }
   static void SplatSet(char *dst, const unsigned char value) {}
+  static void SplatSet(unsigned char *dst, const unsigned char value) {}
 };
 
 // Runtime-size Higher-Order Operations
