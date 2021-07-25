@@ -7,9 +7,9 @@
 //===----------------------------------------------------------------------===//
 
 #include "src/string/strcpy.h"
-#include "src/string/string_utils.h"
 #include "src/__support/common.h"
 #include "src/string/memory_utils/elements.h"
+#include "src/string/string_utils.h"
 
 namespace __llvm_libc {
 
