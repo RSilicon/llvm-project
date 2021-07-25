@@ -96,9 +96,8 @@ template <typename Element, size_t ElementCount> struct Repeated {
     for (size_t i = 0; i < ElementCount; ++i) {
       const size_t offset = i * Element::kSize;
       // We make the assumption that 'Equals' si cheaper than 'ThreeWayCompare'.
-      if (Element::Equals(lhs + offset, rhs + offset))
-        continue;
-      return Element::ThreeWayCompare(lhs + offset, rhs + offset);
+      if (!Element::Equals(lhs + offset, rhs + offset))
+        return Element::ThreeWayCompare(lhs + offset, rhs + offset);
     }
     return 0;
   }
@@ -131,10 +130,10 @@ template <typename Head, typename... Tail> struct Chained<Head, Tail...> {
   }
 
   static int ThreeWayCompare(const char *lhs, const char *rhs) {
-    if (__llvm_libc::Equals<Head>(lhs, rhs))
-      return Chained<Tail...>::ThreeWayCompare(lhs + Head::kSize,
-                                               rhs + Head::kSize);
-    return __llvm_libc::ThreeWayCompare<Head>(lhs, rhs);
+    if (!__llvm_libc::Equals<Head>(lhs, rhs))
+      return __llvm_libc::ThreeWayCompare<Head>(lhs, rhs);
+    return Chained<Tail...>::ThreeWayCompare(lhs + Head::kSize,
+                                             rhs + Head::kSize);
   }
 
   static void SplatSet(char *dst, const unsigned char value) {
