@@ -440,7 +440,7 @@ template <typename T> struct Scalar {
     Store(dst, GetSplattedValue(value));
   }
 
-  static int ScalarThreeWayCompare(T a, T b);
+  static int ScalarThreeWayCompare(T a, T b) noexcept;
 
 private:
   static T Load(const char *ptr) noexcept {
