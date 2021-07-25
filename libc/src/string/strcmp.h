@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int strcmp(const char *left, const char *right);
+int strcmp(const char *left, const char *right) noexcept;
 
 } // namespace __llvm_libc
 

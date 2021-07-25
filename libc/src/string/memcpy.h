@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-void *memcpy(void *__restrict, const void *__restrict, size_t);
+void *memcpy(void *__restrict, const void *__restrict, size_t) noexcept;
 
 } // namespace __llvm_libc
 

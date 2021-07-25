@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-void *memrchr(const void *src, int c, size_t n);
+void *memrchr(const void *src, int c, size_t n) noexcept;
 
 } // namespace __llvm_libc
 

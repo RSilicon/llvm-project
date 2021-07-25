@@ -13,7 +13,8 @@
 namespace __llvm_libc {
 
 // TODO: Look at benefits for comparing words at a time.
-LLVM_LIBC_FUNCTION(int, strcmp, (const char *left, const char *right)) noexcept {
+LLVM_LIBC_FUNCTION(int, strcmp, (const char *left, const char *right))
+noexcept {
   for (; *left && *left == *right; ++left, ++right)
     ;
   return *reinterpret_cast<const unsigned char *>(left) -

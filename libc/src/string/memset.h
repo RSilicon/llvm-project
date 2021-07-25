@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-void *memset(void *ptr, int value, size_t count);
+void *memset(void *ptr, int value, size_t count) noexcept;
 
 } // namespace __llvm_libc
 

@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int memcmp(const void *lhs, const void *rhs, size_t count);
+int memcmp(const void *lhs, const void *rhs, size_t count) noexcept;
 
 } // namespace __llvm_libc
 

@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-void bzero(void *ptr, size_t count);
+void bzero(void *ptr, size_t count) noexcept;
 
 } // namespace __llvm_libc
 

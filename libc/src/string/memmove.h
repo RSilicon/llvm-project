@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-void *memmove(void *dest, const void *src, size_t count);
+void *memmove(void *dest, const void *src, size_t count) noexcept;
 
 } // namespace __llvm_libc
 

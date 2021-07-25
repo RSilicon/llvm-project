@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-size_t strcspn(const char *src, const char *segment);
+size_t strcspn(const char *src, const char *segment) noexcept;
 
 } // namespace __llvm_libc
 

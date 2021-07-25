@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-char *strrchr(const char *src, int c);
+char *strrchr(const char *src, int c) noexcept;
 
 } // namespace __llvm_libc
 
