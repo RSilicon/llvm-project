@@ -33,7 +33,6 @@ template <typename Element>
 void Copy(unsigned char *__restrict dst, const unsigned char *__restrict src) {
   Element::Copy(dst, src);
 }
-
 // Runtime-size copies from 'src' to 'dst'.
 template <typename Element>
 void Copy(char *__restrict dst, const char *__restrict src, size_t size) {
