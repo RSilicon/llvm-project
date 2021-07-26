@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double copysign(double x, double y) noexcept;
+double copysign(double x, double y);
 
 } // namespace __llvm_libc
 

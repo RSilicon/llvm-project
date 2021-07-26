@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double remquol(long double x, long double y, int *exp) noexcept;
+long double remquol(long double x, long double y, int *exp);
 
 } // namespace __llvm_libc
 

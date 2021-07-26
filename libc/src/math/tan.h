@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double tan(double x) noexcept;
+double tan(double x);
 
 } // namespace __llvm_libc
 

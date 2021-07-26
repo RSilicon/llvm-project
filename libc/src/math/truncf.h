@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float truncf(float x) noexcept;
+float truncf(float x);
 
 } // namespace __llvm_libc
 

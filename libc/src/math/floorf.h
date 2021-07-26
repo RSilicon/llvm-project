@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float floorf(float x) noexcept;
+float floorf(float x);
 
 } // namespace __llvm_libc
 

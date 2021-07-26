@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float remainderf(float x, float y) noexcept;
+float remainderf(float x, float y);
 
 } // namespace __llvm_libc
 

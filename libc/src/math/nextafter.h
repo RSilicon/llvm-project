@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double nextafter(double x, double y) noexcept;
+double nextafter(double x, double y);
 
 } // namespace __llvm_libc
 

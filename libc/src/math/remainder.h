@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double remainder(double x, double y) noexcept;
+double remainder(double x, double y);
 
 } // namespace __llvm_libc
 

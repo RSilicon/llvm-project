@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float modff(float x, float *iptr) noexcept;
+float modff(float x, float *iptr);
 
 } // namespace __llvm_libc
 

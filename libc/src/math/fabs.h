@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double fabs(double x) noexcept;
+double fabs(double x);
 
 } // namespace __llvm_libc
 

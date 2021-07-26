@@ -18,29 +18,25 @@
 
 namespace __llvm_libc {
 
-static inline uint32_t as_uint32_bits(float x) noexcept {
+static inline uint32_t as_uint32_bits(float x) {
   return *reinterpret_cast<uint32_t *>(&x);
 }
 
-static inline uint64_t as_uint64_bits(double x) noexcept {
+static inline uint64_t as_uint64_bits(double x) {
   return *reinterpret_cast<uint64_t *>(&x);
 }
 
-static inline float as_float(uint32_t x) noexcept {
+static inline float as_float(uint32_t x) {
   return *reinterpret_cast<float *>(&x);
 }
 
-static inline double as_double(uint64_t x) noexcept {
+static inline double as_double(uint64_t x) {
   return *reinterpret_cast<double *>(&x);
 }
 
-static inline uint32_t top12_bits(float x) noexcept {
-  return as_uint32_bits(x) >> 20;
-}
+static inline uint32_t top12_bits(float x) { return as_uint32_bits(x) >> 20; }
 
-static inline uint32_t top12_bits(double x) noexcept {
-  return as_uint64_bits(x) >> 52;
-}
+static inline uint32_t top12_bits(double x) { return as_uint64_bits(x) >> 52; }
 
 // Values to trigger underflow and overflow.
 template <typename T> struct XFlowValues;
@@ -57,17 +53,17 @@ template <> struct XFlowValues<double> {
   static const double may_underflow_value;
 };
 
-template <typename T> static inline T with_errno(T x, int err) noexcept {
+template <typename T> static inline T with_errno(T x, int err) {
   if (math_errhandling & MATH_ERRNO)
     errno = err; // NOLINT
   return x;
 }
 
-template <typename T> static inline void force_eval(T x) noexcept {
+template <typename T> static inline void force_eval(T x) {
   volatile T y UNUSED = x;
 }
 
-template <typename T> static inline T opt_barrier(T x) noexcept {
+template <typename T> static inline T opt_barrier(T x) {
   volatile T y = x;
   return y;
 }
@@ -81,30 +77,28 @@ template <typename T>
 using EnableIfFloatOrDouble = cpp::EnableIfType<IsFloatOrDouble<T>::Value, int>;
 
 template <typename T, EnableIfFloatOrDouble<T> = 0>
-T xflow(uint32_t sign, T y) noexcept {
+T xflow(uint32_t sign, T y) {
   // Underflow happens when two extremely small values are multiplied.
   // Likewise, overflow happens when two large values are multiplied.
   y = opt_barrier(sign ? -y : y) * y;
   return with_errno(y, ERANGE);
 }
 
-template <typename T, EnableIfFloatOrDouble<T> = 0>
-T overflow(uint32_t sign) noexcept {
+template <typename T, EnableIfFloatOrDouble<T> = 0> T overflow(uint32_t sign) {
   return xflow(sign, XFlowValues<T>::overflow_value);
 }
 
-template <typename T, EnableIfFloatOrDouble<T> = 0>
-T underflow(uint32_t sign) noexcept {
+template <typename T, EnableIfFloatOrDouble<T> = 0> T underflow(uint32_t sign) {
   return xflow(sign, XFlowValues<T>::underflow_value);
 }
 
 template <typename T, EnableIfFloatOrDouble<T> = 0>
-T may_underflow(uint32_t sign) noexcept {
+T may_underflow(uint32_t sign) {
   return xflow(sign, XFlowValues<T>::may_underflow_value);
 }
 
 template <typename T, EnableIfFloatOrDouble<T> = 0>
-static constexpr float invalid(T x) {
+static inline constexpr float invalid(T x) {
   T y = (x - x) / (x - x);
   return isnan(x) ? y : with_errno(y, EDOM);
 }

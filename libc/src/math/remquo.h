@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double remquo(double x, double y, int *exp) noexcept;
+double remquo(double x, double y, int *exp);
 
 } // namespace __llvm_libc
 

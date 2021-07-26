@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float nearbyintf(float x) noexcept;
+float nearbyintf(float x);
 
 } // namespace __llvm_libc
 
