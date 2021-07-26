@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int ispunct(int c) noexcept;
+int ispunct(int c);
 
 } // namespace __llvm_libc
 

@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int isspace(int c) noexcept;
+int isspace(int c);
 
 } // namespace __llvm_libc
 

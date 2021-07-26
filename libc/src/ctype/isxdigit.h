@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int isxdigit(int c) noexcept;
+int isxdigit(int c);
 
 } // namespace __llvm_libc
 

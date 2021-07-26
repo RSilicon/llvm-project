@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int isalpha(int c) noexcept;
+int isalpha(int c);
 
 } // namespace __llvm_libc
 

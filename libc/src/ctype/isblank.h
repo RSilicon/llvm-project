@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int isblank(int c) noexcept;
+int isblank(int c);
 
 } // namespace __llvm_libc
 
