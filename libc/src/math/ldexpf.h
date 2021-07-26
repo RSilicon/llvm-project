@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float ldexpf(float x, int exp);
+float ldexpf(float x, int exp) noexcept;
 
 } // namespace __llvm_libc
 

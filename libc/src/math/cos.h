@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double cos(double x);
+double cos(double x) noexcept;
 
 } // namespace __llvm_libc
 

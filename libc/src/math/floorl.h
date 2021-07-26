@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double floorl(long double x);
+long double floorl(long double x) noexcept;
 
 } // namespace __llvm_libc
 

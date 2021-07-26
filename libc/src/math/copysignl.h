@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double copysignl(long double x, long double y);
+long double copysignl(long double x, long double y) noexcept;
 
 } // namespace __llvm_libc
 

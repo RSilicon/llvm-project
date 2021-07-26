@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float nextafterf(float x, float y);
+float nextafterf(float x, float y) noexcept;
 
 } // namespace __llvm_libc
 

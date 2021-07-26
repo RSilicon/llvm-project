@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float ceilf(float x);
+float ceilf(float x) noexcept;
 
 } // namespace __llvm_libc
 

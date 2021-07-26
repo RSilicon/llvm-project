@@ -36,7 +36,7 @@ extern const sincos_t __sincosf_table[2];
 extern const uint32_t __inv_pio4[];
 
 // Top 12 bits of the float representation with the sign bit cleared.
-static inline uint32_t abstop12(float x) {
+static inline uint32_t abstop12(float x) noexcept {
   return (as_uint32_bits(x) >> 20) & 0x7ff;
 }
 
@@ -44,7 +44,7 @@ static inline uint32_t abstop12(float x) {
 // polynomial P and store the results in SINP and COSP. N is the quadrant,
 // if odd the cosine and sine polynomials are swapped.
 static inline void sincosf_poly(double x, double x2, const sincos_t *p, int n,
-                                float *sinp, float *cosp) {
+                                float *sinp, float *cosp) noexcept {
   double x3, x4, x5, x6, s, c, c1, c2, s1;
 
   x4 = x2 * x2;
@@ -70,7 +70,8 @@ static inline void sincosf_poly(double x, double x2, const sincos_t *p, int n,
 
 // Return the sine of inputs X and X2 (X squared) using the polynomial P.
 // N is the quadrant, and if odd the cosine polynomial is used.
-static inline float sinf_poly(double x, double x2, const sincos_t *p, int n) {
+static inline float sinf_poly(double x, double x2, const sincos_t *p,
+                              int n) noexcept {
   double x3, x4, x6, x7, s, c, c1, c2, s1;
 
   if ((n & 1) == 0) {
@@ -98,7 +99,8 @@ static inline float sinf_poly(double x, double x2, const sincos_t *p, int n) {
 // The values for PI/2 and 2/PI are accessed via P. Since PI/2 as a double
 // is accurate to 55 bits and the worst-case cancellation happens at 6 * PI/4,
 // the result is accurate for |X| <= 120.0.
-static inline double reduce_fast(double x, const sincos_t *p, int *np) {
+static inline double reduce_fast(double x, const sincos_t *p,
+                                 int *np) noexcept {
   double r;
   // Use scaled float to int conversion with explicit rounding.
   // hpi_inv is prescaled by 2^24 so the quadrant ends up in bits 24..31.
@@ -116,7 +118,7 @@ static inline double reduce_fast(double x, const sincos_t *p, int *np) {
 // multiply computes the exact 2.62-bit fixed-point modulo. Since the result
 // can have at most 29 leading zeros after the binary point, the double
 // precision result is accurate to 33 bits.
-static inline double reduce_large(uint32_t xi, int *np) {
+static inline double reduce_large(uint32_t xi, int *np) noexcept {
   const uint32_t *arr = &__inv_pio4[(xi >> 26) & 15];
   int shift = (xi >> 23) & 7;
   uint64_t n, res0, res1, res2;

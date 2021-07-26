@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double sqrt(double x);
+double sqrt(double x) noexcept;
 
 } // namespace __llvm_libc
 

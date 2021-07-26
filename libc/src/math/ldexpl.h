@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double ldexpl(long double x, int exp);
+long double ldexpl(long double x, int exp) noexcept;
 
 } // namespace __llvm_libc
 

@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float fmaxf(float x, float y);
+float fmaxf(float x, float y) noexcept;
 
 } // namespace __llvm_libc
 

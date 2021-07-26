@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float sinf(float x);
+float sinf(float x) noexcept;
 
 } // namespace __llvm_libc
 
