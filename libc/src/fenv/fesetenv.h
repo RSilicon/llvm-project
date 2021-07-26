@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int fesetenv(const fenv_t *) noexcept;
+int fesetenv(const fenv_t *);
 
 } // namespace __llvm_libc
 

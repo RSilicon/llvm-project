@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int feraiseexcept(int) noexcept;
+int feraiseexcept(int);
 
 } // namespace __llvm_libc
 

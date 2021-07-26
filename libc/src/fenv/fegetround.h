@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int fegetround() noexcept;
+int fegetround();
 
 } // namespace __llvm_libc
 
