@@ -15,8 +15,8 @@ namespace __llvm_libc {
 namespace fputil {
 
 template <typename T>
-static inline cpp::EnableIfType<cpp::IsSame<T, float>::Value, T> fma(T x, T y,
-                                                                     T z) {
+static inline cpp::EnableIfType<cpp::IsSame<T, float>::Value, T>
+fma(T x, T y, T z) noexcept {
   float result = x;
   __asm__ __volatile__("vfmadd213ss %x2, %x1, %x0"
                        : "+x"(result)
@@ -25,8 +25,8 @@ static inline cpp::EnableIfType<cpp::IsSame<T, float>::Value, T> fma(T x, T y,
 }
 
 template <typename T>
-static inline cpp::EnableIfType<cpp::IsSame<T, double>::Value, T> fma(T x, T y,
-                                                                      T z) {
+static inline cpp::EnableIfType<cpp::IsSame<T, double>::Value, T>
+fma(T x, T y, T z) noexcept {
   double result = x;
   __asm__ __volatile__("vfmadd213sd %x2, %x1, %x0"
                        : "+x"(result)

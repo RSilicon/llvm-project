@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int fetestexcept(int);
+int fetestexcept(int) noexcept;
 
 } // namespace __llvm_libc
 

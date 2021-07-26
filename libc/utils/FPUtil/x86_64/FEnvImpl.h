@@ -61,7 +61,7 @@ static constexpr uint16_t MXCSRExceptionContolBitPoistion = 7;
 
 // Exception flags are individual bits in the corresponding registers.
 // So, we just OR the bit values to get the full set of exceptions.
-static inline uint16_t getStatusValueForExcept(int excepts) {
+static constexpr uint16_t getStatusValueForExcept(int excepts) {
   // We will make use of the fact that exception control bits are single
   // bit flags in the control registers.
   return (excepts & FE_INVALID ? ExceptionFlags::Invalid : 0) |
@@ -74,7 +74,7 @@ static inline uint16_t getStatusValueForExcept(int excepts) {
          (excepts & FE_INEXACT ? ExceptionFlags::Inexact : 0);
 }
 
-static inline int exceptionStatusToMacro(uint16_t status) {
+static constexpr int exceptionStatusToMacro(uint16_t status) {
   return (status & ExceptionFlags::Invalid ? FE_INVALID : 0) |
 #ifdef __FE_DENORM
          (status & ExceptionFlags::Denormal ? __FE_DENORM : 0) |
@@ -107,53 +107,54 @@ static_assert(
     sizeof(fenv_t) == sizeof(FPState),
     "Internal floating point state does not match the public fenv_t type.");
 
-static inline uint16_t getX87ControlWord() {
+static inline uint16_t getX87ControlWord() noexcept {
   uint16_t w;
   __asm__ __volatile__("fnstcw %0" : "=m"(w)::);
   SANITIZER_MEMORY_INITIALIZED(&w, sizeof(w));
   return w;
 }
 
-static inline void writeX87ControlWord(uint16_t w) {
+static inline void writeX87ControlWord(uint16_t w) noexcept {
   __asm__ __volatile__("fldcw %0" : : "m"(w) :);
 }
 
-static inline uint16_t getX87StatusWord() {
+static inline uint16_t getX87StatusWord() noexcept {
   uint16_t w;
   __asm__ __volatile__("fnstsw %0" : "=m"(w)::);
   SANITIZER_MEMORY_INITIALIZED(&w, sizeof(w));
   return w;
 }
 
-static inline void clearX87Exceptions() {
+static inline void clearX87Exceptions() noexcept {
   __asm__ __volatile__("fnclex" : : :);
 }
 
-static inline uint32_t getMXCSR() {
+static inline uint32_t getMXCSR() noexcept {
   uint32_t w;
   __asm__ __volatile__("stmxcsr %0" : "=m"(w)::);
   SANITIZER_MEMORY_INITIALIZED(&w, sizeof(w));
   return w;
 }
 
-static inline void writeMXCSR(uint32_t w) {
+static inline void writeMXCSR(uint32_t w) noexcept {
   __asm__ __volatile__("ldmxcsr %0" : : "m"(w) :);
 }
 
-static inline void getX87StateDescriptor(X87StateDescriptor &s) {
+static inline void getX87StateDescriptor(X87StateDescriptor &s) noexcept {
   __asm__ __volatile__("fnstenv %0" : "=m"(s));
   SANITIZER_MEMORY_INITIALIZED(&s, sizeof(s));
 }
 
-static inline void writeX87StateDescriptor(const X87StateDescriptor &s) {
+static inline void
+writeX87StateDescriptor(const X87StateDescriptor &s) noexcept {
   __asm__ __volatile__("fldenv %0" : : "m"(s) :);
 }
 
-static inline void fwait() { __asm__ __volatile__("fwait"); }
+static inline void fwait() noexcept { __asm__ __volatile__("fwait"); }
 
 } // namespace internal
 
-static inline int enableExcept(int excepts) {
+static inline int enableExcept(int excepts) noexcept {
   // In the x87 control word and in MXCSR, an exception is blocked
   // if the corresponding bit is set. That is the reason for all the
   // bit-flip operations below as we need to turn the bits to zero
@@ -180,7 +181,7 @@ static inline int enableExcept(int excepts) {
   return internal::exceptionStatusToMacro(oldExcepts);
 }
 
-static inline int disableExcept(int excepts) {
+static inline int disableExcept(int excepts) noexcept {
   // In the x87 control word and in MXCSR, an exception is blocked
   // if the corresponding bit is set.
 
@@ -200,7 +201,7 @@ static inline int disableExcept(int excepts) {
   return internal::exceptionStatusToMacro(oldExcepts);
 }
 
-static inline int clearExcept(int excepts) {
+static inline int clearExcept(int excepts) noexcept {
   internal::X87StateDescriptor state;
   internal::getX87StateDescriptor(state);
   state.StatusWord &= ~internal::getStatusValueForExcept(excepts);
@@ -212,7 +213,7 @@ static inline int clearExcept(int excepts) {
   return 0;
 }
 
-static inline int testExcept(int excepts) {
+static inline int testExcept(int excepts) noexcept {
   uint16_t statusValue = internal::getStatusValueForExcept(excepts);
   // Check both x87 status word and MXCSR.
   return internal::exceptionStatusToMacro(
@@ -221,7 +222,7 @@ static inline int testExcept(int excepts) {
 }
 
 // Sets the exception flags but does not trigger the exception handler.
-static inline int setExcept(int excepts) {
+static inline int setExcept(int excepts) noexcept {
   uint16_t statusValue = internal::getStatusValueForExcept(excepts);
   internal::X87StateDescriptor state;
   internal::getX87StateDescriptor(state);
@@ -235,7 +236,7 @@ static inline int setExcept(int excepts) {
   return 0;
 }
 
-static inline int raiseExcept(int excepts) {
+static inline int raiseExcept(int excepts) noexcept {
   uint16_t statusValue = internal::getStatusValueForExcept(excepts);
 
   // We set the status flag for exception one at a time and call the
@@ -251,7 +252,7 @@ static inline int raiseExcept(int excepts) {
   // ensure that the writes by the exception handler are maintained
   // when raising the next exception.
 
-  auto raiseHelper = [](uint16_t  singleExceptFlag) {
+  auto raiseHelper = [](uint16_t singleExceptFlag) {
     internal::X87StateDescriptor state;
     internal::getX87StateDescriptor(state);
     state.StatusWord |= singleExceptFlag;
@@ -283,7 +284,7 @@ static inline int raiseExcept(int excepts) {
   return 0;
 }
 
-static inline int getRound() {
+static inline int getRound() noexcept {
   uint16_t bitValue =
       (internal::getMXCSR() >> internal::MXCSRRoundingControlBitPosition) & 0x3;
   switch (bitValue) {
@@ -300,7 +301,7 @@ static inline int getRound() {
   }
 }
 
-static inline int setRound(int mode) {
+static inline int setRound(int mode) noexcept {
   uint16_t bitValue;
   switch (mode) {
   case FE_TONEAREST:
@@ -339,14 +340,14 @@ static inline int setRound(int mode) {
 }
 
 #if !(defined(_WIN32))
-static inline int getEnv(fenv_t *envp) {
+static inline int getEnv(fenv_t *envp) noexcept {
   internal::FPState *state = reinterpret_cast<internal::FPState *>(envp);
   internal::getX87StateDescriptor(state->X87Status);
   state->MXCSR = internal::getMXCSR();
   return 0;
 }
 
-static inline int setEnv(const fenv_t *envp) {
+static inline int setEnv(const fenv_t *envp) noexcept {
   const internal::FPState *state =
       reinterpret_cast<const internal::FPState *>(envp);
   internal::writeX87StateDescriptor(state->X87Status);
