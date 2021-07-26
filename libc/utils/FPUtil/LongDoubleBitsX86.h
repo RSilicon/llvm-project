@@ -43,45 +43,43 @@ template <> union FPBits<long double> {
 
   UIntType bits;
 
-  void setMantissa(UIntType mantVal) noexcept {
+  void setMantissa(UIntType mantVal) {
     mantVal &= (FloatProp::mantissaMask);
     bits &= ~(FloatProp::mantissaMask);
     bits |= mantVal;
   }
 
-  UIntType getMantissa() const noexcept {
-    return bits & FloatProp::mantissaMask;
-  }
+  UIntType getMantissa() const { return bits & FloatProp::mantissaMask; }
 
-  void setUnbiasedExponent(UIntType expVal) noexcept {
+  void setUnbiasedExponent(UIntType expVal) {
     expVal = (expVal << (FloatProp::bitWidth - 1 - FloatProp::exponentWidth)) &
              FloatProp::exponentMask;
     bits &= ~(FloatProp::exponentMask);
     bits |= expVal;
   }
 
-  uint16_t getUnbiasedExponent() const noexcept {
+  uint16_t getUnbiasedExponent() const {
     return uint16_t((bits & FloatProp::exponentMask) >>
                     (FloatProp::bitWidth - 1 - FloatProp::exponentWidth));
   }
 
-  void setImplicitBit(bool implicitVal) noexcept {
+  void setImplicitBit(bool implicitVal) {
     bits &= ~(UIntType(1) << FloatProp::mantissaWidth);
     bits |= (UIntType(implicitVal) << FloatProp::mantissaWidth);
   }
 
-  bool getImplicitBit() const noexcept {
+  bool getImplicitBit() const {
     return ((bits & (UIntType(1) << FloatProp::mantissaWidth)) >>
             FloatProp::mantissaWidth);
   }
 
-  void setSign(bool signVal) noexcept {
+  void setSign(bool signVal) {
     bits &= ~(FloatProp::signMask);
     UIntType sign1 = UIntType(signVal) << (FloatProp::bitWidth - 1);
     bits |= sign1;
   }
 
-  bool getSign() const noexcept {
+  bool getSign() const {
     return ((bits & FloatProp::signMask) >> (FloatProp::bitWidth - 1));
   }
 
@@ -108,23 +106,23 @@ template <> union FPBits<long double> {
     return bits & mask;
   }
 
-  int getExponent() const noexcept {
+  int getExponent() const {
     if (getUnbiasedExponent() == 0)
       return int(1) - exponentBias;
     return int(getUnbiasedExponent()) - exponentBias;
   }
 
-  bool isZero() const noexcept {
+  bool isZero() const {
     return getUnbiasedExponent() == 0 && getMantissa() == 0 &&
            getImplicitBit() == 0;
   }
 
-  bool isInf() const noexcept {
+  bool isInf() const {
     return getUnbiasedExponent() == maxExponent && getMantissa() == 0 &&
            getImplicitBit() == 1;
   }
 
-  bool isNaN() const noexcept {
+  bool isNaN() const {
     if (getUnbiasedExponent() == maxExponent) {
       return (getImplicitBit() == 0) || getMantissa() != 0;
     } else if (getUnbiasedExponent() != 0) {
@@ -133,31 +131,29 @@ template <> union FPBits<long double> {
     return false;
   }
 
-  bool isInfOrNaN() const noexcept {
+  bool isInfOrNaN() const {
     return (getUnbiasedExponent() == maxExponent) ||
            (getUnbiasedExponent() != 0 && getImplicitBit() == 0);
   }
 
   // Methods below this are used by tests.
 
-  static FPBits<long double> zero() noexcept {
-    return FPBits<long double>(0.0l);
-  }
+  static FPBits<long double> zero() { return FPBits<long double>(0.0l); }
 
-  static FPBits<long double> negZero() noexcept {
+  static FPBits<long double> negZero() {
     FPBits<long double> bits(0.0l);
     bits.setSign(1);
     return bits;
   }
 
-  static FPBits<long double> inf() noexcept {
+  static FPBits<long double> inf() {
     FPBits<long double> bits(0.0l);
     bits.setUnbiasedExponent(maxExponent);
     bits.setImplicitBit(1);
     return bits;
   }
 
-  static FPBits<long double> negInf() noexcept {
+  static FPBits<long double> negInf() {
     FPBits<long double> bits(0.0l);
     bits.setUnbiasedExponent(maxExponent);
     bits.setImplicitBit(1);
@@ -165,7 +161,7 @@ template <> union FPBits<long double> {
     return bits;
   }
 
-  static long double buildNaN(UIntType v) noexcept {
+  static long double buildNaN(UIntType v) {
     FPBits<long double> bits(0.0l);
     bits.setUnbiasedExponent(maxExponent);
     bits.setImplicitBit(1);

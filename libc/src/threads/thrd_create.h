@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int thrd_create(thrd_t *thread, thrd_start_t func, void *arg) noexcept;
+int thrd_create(thrd_t *thread, thrd_start_t func, void *arg);
 
 } // namespace __llvm_libc
 

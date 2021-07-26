@@ -14,7 +14,7 @@
 
 namespace __llvm_libc {
 
-ssize_t write(int fd, const void *buf, size_t count) noexcept;
+ssize_t write(int fd, const void *buf, size_t count);
 
 } // namespace __llvm_libc
 

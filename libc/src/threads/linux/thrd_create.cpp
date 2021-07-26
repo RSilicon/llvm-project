@@ -30,7 +30,7 @@ struct StartArgs {
   void *arg;
 };
 
-static __attribute__((noinline)) void start_thread() noexcept {
+static __attribute__((noinline)) void start_thread() {
   StartArgs *start_args = reinterpret_cast<StartArgs *>(get_start_args_addr());
   __llvm_libc::syscall(SYS_exit, start_args->thread->__retval =
                                      start_args->func(start_args->arg));

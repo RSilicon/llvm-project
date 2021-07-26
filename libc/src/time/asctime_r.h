@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-char *asctime_r(const struct tm *timeptr, char *buffer) noexcept;
+char *asctime_r(const struct tm *timeptr, char *buffer);
 
 } // namespace __llvm_libc
 
