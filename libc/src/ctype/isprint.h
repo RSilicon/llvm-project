@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int isprint(int c) noexcept;
+int isprint(int c);
 
 } // namespace __llvm_libc
 
