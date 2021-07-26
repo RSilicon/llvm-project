@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double fma(double x, double y, double z);
+double fma(double x, double y, double z) noexcept;
 
 } // namespace __llvm_libc
 

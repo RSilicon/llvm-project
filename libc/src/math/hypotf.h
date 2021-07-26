@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float hypotf(float x, float y);
+float hypotf(float x, float y) noexcept;
 
 } // namespace __llvm_libc
 

@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double ceill(long double x);
+long double ceill(long double x) noexcept;
 
 } // namespace __llvm_libc
 

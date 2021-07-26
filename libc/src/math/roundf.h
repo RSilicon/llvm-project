@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float roundf(float x);
+float roundf(float x) noexcept;
 
 } // namespace __llvm_libc
 

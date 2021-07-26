@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float sqrtf(float x);
+float sqrtf(float x) noexcept;
 
 } // namespace __llvm_libc
 

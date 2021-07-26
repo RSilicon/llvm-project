@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long long llrintf(float x);
+long long llrintf(float x) noexcept;
 
 } // namespace __llvm_libc
 

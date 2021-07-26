@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float exp2f(float x);
+float exp2f(float x) noexcept;
 
 } // namespace __llvm_libc
 

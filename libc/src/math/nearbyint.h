@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double nearbyint(double x);
+double nearbyint(double x) noexcept;
 
 } // namespace __llvm_libc
 

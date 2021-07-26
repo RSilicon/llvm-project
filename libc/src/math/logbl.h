@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double logbl(long double x);
+long double logbl(long double x) noexcept;
 
 } // namespace __llvm_libc
 

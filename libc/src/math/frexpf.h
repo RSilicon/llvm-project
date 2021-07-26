@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float frexpf(float x, int *exp);
+float frexpf(float x, int *exp) noexcept;
 
 } // namespace __llvm_libc
 

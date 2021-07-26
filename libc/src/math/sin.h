@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double sin(double x);
+double sin(double x) noexcept;
 
 } // namespace __llvm_libc
 

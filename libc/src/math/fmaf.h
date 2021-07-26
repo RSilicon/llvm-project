@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float fmaf(float x, float y, float z);
+float fmaf(float x, float y, float z) noexcept;
 
 } // namespace __llvm_libc
 
