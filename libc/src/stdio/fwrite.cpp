@@ -14,13 +14,13 @@
 namespace __llvm_libc {
 
 size_t fwrite_unlocked(const void *__restrict ptr, size_t size, size_t nmeb,
-                       __llvm_libc::FILE *__restrict stream) {
+                       __llvm_libc::FILE *__restrict stream) noexcept {
   return stream->write(stream, reinterpret_cast<const char *>(ptr),
                        size * nmeb);
 }
 
 size_t fwrite(const void *__restrict ptr, size_t size, size_t nmeb,
-              __llvm_libc::FILE *__restrict stream) {
+              __llvm_libc::FILE *__restrict stream) noexcept {
   __llvm_libc::mtx_lock(&stream->lock);
   size_t written = fwrite_unlocked(ptr, size, nmeb, stream);
   __llvm_libc::mtx_unlock(&stream->lock);

@@ -35,7 +35,7 @@ struct Sigset {
 
 constexpr static Sigset all = Sigset::fullset();
 
-static inline int block_all_signals(Sigset &set) {
+static inline int block_all_signals(Sigset &set) noexcept {
   sigset_t nativeSigset = all;
   sigset_t oldSet = set;
   int ret = __llvm_libc::syscall(SYS_rt_sigprocmask, SIG_BLOCK, &nativeSigset,
@@ -44,7 +44,7 @@ static inline int block_all_signals(Sigset &set) {
   return ret;
 }
 
-static inline int restore_signals(const Sigset &set) {
+static inline int restore_signals(const Sigset &set) noexcept {
   sigset_t nativeSigset = set;
   return __llvm_libc::syscall(SYS_rt_sigprocmask, SIG_SETMASK, &nativeSigset,
                               nullptr, sizeof(sigset_t));
