@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int abs(int n) noexcept;
+int abs(int n);
 
 } // namespace __llvm_libc
 

@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int raise(int sig) noexcept;
+int raise(int sig);
 
 } // namespace __llvm_libc
 

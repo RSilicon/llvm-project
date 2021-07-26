@@ -14,7 +14,7 @@
 namespace __llvm_libc {
 
 int sigprocmask(int how, const sigset_t *__restrict set,
-                sigset_t *__restrict oldset) noexcept;
+                sigset_t *__restrict oldset);
 
 } // namespace __llvm_libc
 

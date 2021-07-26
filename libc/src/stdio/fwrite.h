@@ -15,7 +15,7 @@
 namespace __llvm_libc {
 
 size_t fwrite(const void *__restrict ptr, size_t size, size_t nmeb,
-              __llvm_libc::FILE *__restrict stream) noexcept;
+              __llvm_libc::FILE *__restrict stream);
 
 } // namespace __llvm_libc
 

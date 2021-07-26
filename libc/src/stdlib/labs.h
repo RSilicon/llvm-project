@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long labs(long n) noexcept;
+long labs(long n);
 
 } // namespace __llvm_libc
 
