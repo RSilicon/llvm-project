@@ -14,7 +14,8 @@
 namespace __llvm_libc {
 
 template <typename T>
-static constexpr inline cpp::EnableIfType<cpp::IsIntegral<T>::Value, T> integerAbs(T n) {
+static constexpr cpp::EnableIfType<cpp::IsIntegral<T>::Value, T>
+integerAbs(T n) {
   return (n < 0) ? -n : n;
 }
 
