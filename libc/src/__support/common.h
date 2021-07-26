@@ -26,7 +26,7 @@
   decltype(__llvm_libc::name) name [[gnu::alias(#name)]];                      \
   type __##name##_impl__ arglist
 #else
-#define LLVM_LIBC_FUNCTION(type, name, arglist) type name arglist
+#define LLVM_LIBC_FUNCTION(type, name, arglist) type name arglist noexcept
 #endif
 
 namespace __llvm_libc {

@@ -15,7 +15,7 @@ namespace __llvm_libc {
 
 // TODO: investigate the performance of this function.
 // There might be potential for compiler optimization.
-LLVM_LIBC_FUNCTION(size_t, strlen, (const char *src)) noexcept {
+LLVM_LIBC_FUNCTION(size_t, strlen, (const char *src)) {
   return internal::string_length(src);
 }
 

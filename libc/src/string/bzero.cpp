@@ -12,7 +12,7 @@
 
 namespace __llvm_libc {
 
-LLVM_LIBC_FUNCTION(void, bzero, (void *ptr, size_t count)) noexcept {
+LLVM_LIBC_FUNCTION(void, bzero, (void *ptr, size_t count)) {
   GeneralPurposeMemset(reinterpret_cast<char *>(ptr), 0, count);
 }
 

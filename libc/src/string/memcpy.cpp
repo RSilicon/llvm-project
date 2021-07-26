@@ -60,8 +60,7 @@ static void memcpy_impl(char *__restrict dst, const char *__restrict src,
 
 LLVM_LIBC_FUNCTION(void *, memcpy,
                    (void *__restrict dst, const void *__restrict src,
-                    size_t size))
-noexcept {
+                    size_t size)) {
   memcpy_impl(reinterpret_cast<char *>(dst),
               reinterpret_cast<const char *>(src), size);
   return dst;

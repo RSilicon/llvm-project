@@ -13,7 +13,7 @@
 namespace __llvm_libc {
 
 // TODO: Look at performance benefits of comparing words.
-LLVM_LIBC_FUNCTION(char *, strchr, (const char *src, int c)) noexcept {
+LLVM_LIBC_FUNCTION(char *, strchr, (const char *src, int c)) {
   const char ch = static_cast<char>(c);
   for (; *src != ch; ++src)
     if (*src == '\0')

@@ -14,8 +14,7 @@
 
 namespace __llvm_libc {
 
-LLVM_LIBC_FUNCTION(size_t, strspn, (const char *src, const char *segment))
-noexcept {
+LLVM_LIBC_FUNCTION(size_t, strspn, (const char *src, const char *segment)) {
   const char *initial = src;
   cpp::Bitset<256> bitset;
 

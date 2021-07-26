@@ -50,8 +50,7 @@ static int memcmp_impl(const char *lhs, const char *rhs,
 } // namespace aarch64
 
 LLVM_LIBC_FUNCTION(int, memcmp,
-                   (const void *lhs, const void *rhs, size_t count))
-noexcept {
+                   (const void *lhs, const void *rhs, size_t count)) {
 
   return aarch64::memcmp_impl(reinterpret_cast<const char *>(lhs),
                               reinterpret_cast<const char *>(rhs), count);

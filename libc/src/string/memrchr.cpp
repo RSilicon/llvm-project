@@ -12,8 +12,7 @@
 
 namespace __llvm_libc {
 
-LLVM_LIBC_FUNCTION(void *, memrchr, (const void *src, int c, size_t n))
-noexcept {
+LLVM_LIBC_FUNCTION(void *, memrchr, (const void *src, int c, size_t n)) {
   const unsigned char *str = reinterpret_cast<const unsigned char *>(src);
   const unsigned char ch = static_cast<unsigned char>(c);
   for (; n != 0; --n) {

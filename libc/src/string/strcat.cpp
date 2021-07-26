@@ -15,8 +15,7 @@
 namespace __llvm_libc {
 
 LLVM_LIBC_FUNCTION(char *, strcat,
-                   (char *__restrict dest, const char *__restrict src))
-noexcept {
+                   (char *__restrict dest, const char *__restrict src)) {
   __llvm_libc::strcpy(dest + internal::string_length(dest), src);
   return dest;
 }

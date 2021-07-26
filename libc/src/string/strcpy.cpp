@@ -15,8 +15,7 @@
 namespace __llvm_libc {
 
 LLVM_LIBC_FUNCTION(char *, strcpy,
-                   (char *__restrict dest, const char *__restrict src))
-noexcept {
+                   (char *__restrict dest, const char *__restrict src)) {
   return reinterpret_cast<char *>(
       __llvm_libc::memcpy(dest, src, internal::string_length(src) + 1));
 }

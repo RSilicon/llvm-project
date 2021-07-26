@@ -29,8 +29,8 @@ static inline void move_byte_backward(unsigned char *dest_m,
     dest_m[offset - 1] = src_m[offset - 1];
 }
 
-LLVM_LIBC_FUNCTION(void *, memmove, (void *dest, const void *src, size_t count))
-noexcept {
+LLVM_LIBC_FUNCTION(void *, memmove,
+                   (void *dest, const void *src, size_t count)) {
   unsigned char *dest_c = reinterpret_cast<unsigned char *>(dest);
   const unsigned char *src_c = reinterpret_cast<const unsigned char *>(src);
 
