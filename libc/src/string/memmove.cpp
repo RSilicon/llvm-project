@@ -24,7 +24,7 @@ static inline void move_byte_forward(unsigned char *dest_m,
 
 static inline void move_byte_backward(unsigned char *dest_m,
                                       const unsigned char *src_m,
-                                      size_t count) noexcept {
+                                      size_t count) {
   for (size_t offset = count; offset != 0; --offset)
     dest_m[offset - 1] = src_m[offset - 1];
 }
