@@ -17,7 +17,7 @@ namespace internal {
 
 // Returns the length of a string, denoted by the first occurrence
 // of a null terminator.
-static inline size_t string_length(const char *src) noexcept {
+static inline size_t string_length(const char *src) {
   const char *const initial = src;
   for (; *src != '\0'; ++src)
     ;
@@ -27,7 +27,7 @@ static inline size_t string_length(const char *src) noexcept {
 // Returns the first occurrence of 'ch' within the first 'n' characters of
 // 'src'. If 'ch' is not found, returns nullptr.
 static inline void *find_first_character(const unsigned char *src,
-                                         unsigned char ch, size_t n) noexcept {
+                                         unsigned char ch, size_t n) {
   for (; n != 0; --n, ++src)
     if (*src == ch)
       return const_cast<unsigned char *>(src);
@@ -36,8 +36,7 @@ static inline void *find_first_character(const unsigned char *src,
 
 // Returns the maximum length span that contains only characters not found in
 // 'segment'. If no characters are found, returns the length of 'src'.
-static inline size_t complementary_span(const char *src,
-                                        const char *segment) noexcept {
+static inline size_t complementary_span(const char *src, const char *segment) {
   const char *const initial = src;
   cpp::Bitset<256> bitset;
 
