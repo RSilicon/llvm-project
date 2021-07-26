@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int *__errno_location() noexcept;
+int *__errno_location();
 
 } // namespace __llvm_libc
 

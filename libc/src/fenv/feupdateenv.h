@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int feupdateenv(const fenv_t *) noexcept;
+int feupdateenv(const fenv_t *);
 
 } // namespace __llvm_libc
 

@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int feholdexcept(fenv_t *) noexcept;
+int feholdexcept(fenv_t *);
 
 } // namespace __llvm_libc
 
