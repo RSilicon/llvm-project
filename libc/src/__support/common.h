@@ -24,9 +24,9 @@
   LLVM_LIBC_FUNCTION_ATTR decltype(__llvm_libc::name)                          \
       __##name##_impl__ __asm__(#name);                                        \
   decltype(__llvm_libc::name) name [[gnu::alias(#name)]];                      \
-  type __##name##_impl__ arglist
+  type __##name##_impl__ arglist noexcept
 #else
-#define LLVM_LIBC_FUNCTION(type, name, arglist) type name arglist
+#define LLVM_LIBC_FUNCTION(type, name, arglist) type name arglist noexcept
 #endif
 
 namespace __llvm_libc {
