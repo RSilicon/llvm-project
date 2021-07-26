@@ -24,7 +24,7 @@ namespace fputil {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T frexp(T x, int &exp) {
+static inline T frexp(T x, int &exp) noexcept {
   FPBits<T> bits(x);
   if (bits.isInfOrNaN())
     return x;
@@ -41,7 +41,7 @@ static inline T frexp(T x, int &exp) {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T modf(T x, T &iptr) {
+static inline T modf(T x, T &iptr) noexcept {
   FPBits<T> bits(x);
   if (bits.isZero() || bits.isNaN()) {
     iptr = x;
@@ -63,7 +63,7 @@ static inline T modf(T x, T &iptr) {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T copysign(T x, T y) {
+static inline T copysign(T x, T y) noexcept {
   FPBits<T> xbits(x);
   xbits.setSign(FPBits<T>(y).getSign());
   return T(xbits);
@@ -71,7 +71,7 @@ static inline T copysign(T x, T y) {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline int ilogb(T x) {
+static inline int ilogb(T x) noexcept {
   // TODO: Raise appropriate floating point exceptions and set errno to the
   // an appropriate error value wherever relevant.
   FPBits<T> bits(x);
@@ -100,7 +100,7 @@ static inline int ilogb(T x) {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T logb(T x) {
+static inline T logb(T x) noexcept {
   FPBits<T> bits(x);
   if (bits.isZero()) {
     // TODO(Floating point exception): Raise div-by-zero exception.
@@ -119,7 +119,7 @@ static inline T logb(T x) {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T ldexp(T x, int exp) {
+static inline T ldexp(T x, int exp) noexcept {
   FPBits<T> bits(x);
   if (bits.isZero() || bits.isInfOrNaN() || exp == 0)
     return x;
@@ -146,7 +146,7 @@ static inline T ldexp(T x, int exp) {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T nextafter(T from, T to) {
+static inline T nextafter(T from, T to) noexcept {
   FPBits<T> fromBits(from);
   if (fromBits.isNaN())
     return from;

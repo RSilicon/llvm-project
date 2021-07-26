@@ -21,9 +21,10 @@ namespace internal {
 
 template <typename T>
 static inline void normalize(int &exponent,
-                             typename FPBits<T>::UIntType &mantissa);
+                             typename FPBits<T>::UIntType &mantissa) noexcept;
 
-template <> inline void normalize<float>(int &exponent, uint32_t &mantissa) {
+template <>
+inline void normalize<float>(int &exponent, uint32_t &mantissa) noexcept {
   // Use binary search to shift the leading 1 bit.
   // With MantissaWidth<float> = 23, it will take
   // ceil(log2(23)) = 5 steps checking the mantissa bits as followed:
@@ -45,7 +46,8 @@ template <> inline void normalize<float>(int &exponent, uint32_t &mantissa) {
   }
 }
 
-template <> inline void normalize<double>(int &exponent, uint64_t &mantissa) {
+template <>
+inline void normalize<double>(int &exponent, uint64_t &mantissa) noexcept {
   // Use binary search to shift the leading 1 bit similar to float.
   // With MantissaWidth<double> = 52, it will take
   // ceil(log2(52)) = 6 steps checking the mantissa bits.
@@ -64,12 +66,13 @@ template <> inline void normalize<double>(int &exponent, uint64_t &mantissa) {
 
 #ifdef LONG_DOUBLE_IS_DOUBLE
 template <>
-inline void normalize<long double>(int &exponent, uint64_t &mantissa) {
+inline void normalize<long double>(int &exponent, uint64_t &mantissa) noexcept {
   normalize<double>(exponent, mantissa);
 }
 #elif !defined(SPECIAL_X86_LONG_DOUBLE)
 template <>
-inline void normalize<long double>(int &exponent, __uint128_t &mantissa) {
+inline void normalize<long double>(int &exponent,
+                                   __uint128_t &mantissa) noexcept {
   // Use binary search to shift the leading 1 bit similar to float.
   // With MantissaWidth<long double> = 112, it will take
   // ceil(log2(112)) = 7 steps checking the mantissa bits.
@@ -95,7 +98,7 @@ inline void normalize<long double>(int &exponent, __uint128_t &mantissa) {
 // Shift-and-add algorithm.
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T sqrt(T x) {
+static inline T sqrt(T x) noexcept {
   using UIntType = typename FPBits<T>::UIntType;
   constexpr UIntType One = UIntType(1) << MantissaWidth<T>::value;
 
