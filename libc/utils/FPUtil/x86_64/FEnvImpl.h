@@ -61,7 +61,7 @@ static constexpr uint16_t MXCSRExceptionContolBitPoistion = 7;
 
 // Exception flags are individual bits in the corresponding registers.
 // So, we just OR the bit values to get the full set of exceptions.
-static inline uint16_t getStatusValueForExcept(int excepts) {
+static constexpr uint16_t getStatusValueForExcept(int excepts) {
   // We will make use of the fact that exception control bits are single
   // bit flags in the control registers.
   return (excepts & FE_INVALID ? ExceptionFlags::Invalid : 0) |
@@ -74,7 +74,7 @@ static inline uint16_t getStatusValueForExcept(int excepts) {
          (excepts & FE_INEXACT ? ExceptionFlags::Inexact : 0);
 }
 
-static inline int exceptionStatusToMacro(uint16_t status) {
+static constexpr int exceptionStatusToMacro(uint16_t status) {
   return (status & ExceptionFlags::Invalid ? FE_INVALID : 0) |
 #ifdef __FE_DENORM
          (status & ExceptionFlags::Denormal ? __FE_DENORM : 0) |
@@ -251,7 +251,7 @@ static inline int raiseExcept(int excepts) {
   // ensure that the writes by the exception handler are maintained
   // when raising the next exception.
 
-  auto raiseHelper = [](uint16_t  singleExceptFlag) {
+  auto raiseHelper = [](uint16_t singleExceptFlag) {
     internal::X87StateDescriptor state;
     internal::getX87StateDescriptor(state);
     state.StatusWord |= singleExceptFlag;
