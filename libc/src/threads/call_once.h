@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-void call_once(once_flag *flag, __call_once_func_t func);
+void call_once(once_flag *flag, __call_once_func_t func) noexcept;
 
 } // namespace __llvm_libc
 

@@ -45,7 +45,7 @@ template <typename T> struct NormalFloat {
   bool sign;
 
   NormalFloat(int32_t e, UIntType m, bool s)
-      : exponent(e), mantissa(m), sign(s) {
+      : exponent(e), mantissa(m), sign(s) noexcept {
     if (mantissa >= one)
       return;
 
@@ -61,7 +61,7 @@ template <typename T> struct NormalFloat {
   // Compares this normalized number with another normalized number.
   // Returns -1 is this number is less than |other|, 0 if this number is equal
   // to |other|, and 1 if this number is greater than |other|.
-  int cmp(const NormalFloat<T> &other) const {
+  int cmp(const NormalFloat<T> &other) const noexcept {
     if (sign != other.sign)
       return sign ? -1 : 1;
 
@@ -82,7 +82,7 @@ template <typename T> struct NormalFloat {
   // Returns a new normalized floating point number which is equal in value
   // to this number multiplied by 2^e. That is:
   //     new = this *  2^e
-  NormalFloat<T> mul2(int e) const {
+  NormalFloat<T> mul2(int e) const noexcept {
     NormalFloat<T> result = *this;
     result.exponent += e;
     return result;
@@ -138,7 +138,7 @@ template <typename T> struct NormalFloat {
   }
 
 private:
-  void initFromBits(FPBits<T> bits) {
+  void initFromBits(FPBits<T> bits) noexcept {
     sign = bits.getSign();
 
     if (bits.isInfOrNaN() || bits.isZero()) {
@@ -160,7 +160,7 @@ private:
     }
   }
 
-  unsigned evaluateNormalizationShift(UIntType m) {
+  unsigned evaluateNormalizationShift(UIntType m) noexcept {
     unsigned shift = 0;
     for (; (one & m) == 0 && (shift < MantissaWidth<T>::value);
          m <<= 1, ++shift)
@@ -171,7 +171,7 @@ private:
 
 #ifdef SPECIAL_X86_LONG_DOUBLE
 template <>
-inline void NormalFloat<long double>::initFromBits(FPBits<long double> bits) {
+inline void NormalFloat<long double>::initFromBits(FPBits<long double> bits) noexcept {
   sign = bits.getSign();
 
   if (bits.isInfOrNaN() || bits.isZero()) {

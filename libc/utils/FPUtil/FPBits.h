@@ -48,32 +48,34 @@ template <typename T> union FPBits {
 
   UIntType bits;
 
-  void setMantissa(UIntType mantVal) {
+  void setMantissa(UIntType mantVal) noexcept {
     mantVal &= (FloatProp::mantissaMask);
     bits &= ~(FloatProp::mantissaMask);
     bits |= mantVal;
   }
 
-  UIntType getMantissa() const { return bits & FloatProp::mantissaMask; }
+  UIntType getMantissa() const noexcept {
+    return bits & FloatProp::mantissaMask;
+  }
 
-  void setUnbiasedExponent(UIntType expVal) {
+  void setUnbiasedExponent(UIntType expVal) noexcept {
     expVal = (expVal << (FloatProp::mantissaWidth)) & FloatProp::exponentMask;
     bits &= ~(FloatProp::exponentMask);
     bits |= expVal;
   }
 
-  uint16_t getUnbiasedExponent() const {
+  uint16_t getUnbiasedExponent() const noexcept {
     return uint16_t((bits & FloatProp::exponentMask) >>
                     (FloatProp::mantissaWidth));
   }
 
-  void setSign(bool signVal) {
+  void setSign(bool signVal) noexcept {
     bits &= ~(FloatProp::signMask);
     UIntType sign = UIntType(signVal) << (FloatProp::bitWidth - 1);
     bits |= sign;
   }
 
-  bool getSign() const {
+  bool getSign() const noexcept {
     return ((bits & FloatProp::signMask) >> (FloatProp::bitWidth - 1));
   }
   T val;
@@ -106,43 +108,47 @@ template <typename T> union FPBits {
 
   explicit operator T() { return val; }
 
-  UIntType uintval() const { return bits; }
+  UIntType uintval() const noexcept { return bits; }
 
-  int getExponent() const { return int(getUnbiasedExponent()) - exponentBias; }
+  int getExponent() const noexcept {
+    return int(getUnbiasedExponent()) - exponentBias;
+  }
 
-  bool isZero() const {
+  bool isZero() const noexcept {
     return getMantissa() == 0 && getUnbiasedExponent() == 0;
   }
 
-  bool isInf() const {
+  bool isInf() const noexcept {
     return getMantissa() == 0 && getUnbiasedExponent() == maxExponent;
   }
 
-  bool isNaN() const {
+  bool isNaN() const noexcept {
     return getUnbiasedExponent() == maxExponent && getMantissa() != 0;
   }
 
-  bool isInfOrNaN() const { return getUnbiasedExponent() == maxExponent; }
+  bool isInfOrNaN() const noexcept {
+    return getUnbiasedExponent() == maxExponent;
+  }
 
-  static FPBits<T> zero() { return FPBits(); }
+  static FPBits<T> zero() noexcept { return FPBits(); }
 
-  static FPBits<T> negZero() {
+  static FPBits<T> negZero() noexcept {
     return FPBits(UIntType(1) << (sizeof(UIntType) * 8 - 1));
   }
 
-  static FPBits<T> inf() {
+  static FPBits<T> inf() noexcept {
     FPBits<T> bits;
     bits.setUnbiasedExponent(maxExponent);
     return bits;
   }
 
-  static FPBits<T> negInf() {
+  static FPBits<T> negInf() noexcept {
     FPBits<T> bits = inf();
     bits.setSign(1);
     return bits;
   }
 
-  static T buildNaN(UIntType v) {
+  static T buildNaN(UIntType v) noexcept {
     FPBits<T> bits = inf();
     bits.setMantissa(v);
     return T(bits);

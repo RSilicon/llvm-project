@@ -18,7 +18,7 @@ namespace fputil {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T abs(T x) {
+static inline T abs(T x) noexcept {
   FPBits<T> bits(x);
   bits.setSign(0);
   return T(bits);
@@ -26,7 +26,7 @@ static inline T abs(T x) {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T fmin(T x, T y) {
+static inline T fmin(T x, T y) noexcept {
   FPBits<T> bitx(x), bity(y);
 
   if (bitx.isNaN()) {
@@ -45,7 +45,7 @@ static inline T fmin(T x, T y) {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T fmax(T x, T y) {
+static inline T fmax(T x, T y) noexcept {
   FPBits<T> bitx(x), bity(y);
 
   if (bitx.isNaN()) {

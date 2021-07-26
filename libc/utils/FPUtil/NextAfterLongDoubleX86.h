@@ -16,7 +16,7 @@
 namespace __llvm_libc {
 namespace fputil {
 
-static inline long double nextafter(long double from, long double to) {
+static inline long double nextafter(long double from, long double to) noexcept {
   using FPBits = FPBits<long double>;
   FPBits fromBits(from);
   if (fromBits.isNaN())

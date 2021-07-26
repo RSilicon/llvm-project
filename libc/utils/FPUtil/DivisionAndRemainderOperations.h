@@ -24,7 +24,7 @@ static constexpr int quotientLSBBits = 3;
 // to evaluate the quotient and remainder.
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T remquo(T x, T y, int &q) {
+static inline T remquo(T x, T y, int &q) noexcept {
   FPBits<T> xbits(x), ybits(y);
   if (xbits.isNaN())
     return x;

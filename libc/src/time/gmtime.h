@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-struct tm *gmtime(const time_t *timer);
+struct tm *gmtime(const time_t *timer) noexcept;
 
 } // namespace __llvm_libc
 

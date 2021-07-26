@@ -50,44 +50,46 @@ public:
   template <size_t N>
   constexpr ArrayRefBase(QualifiedT (&Arr)[N]) : Data(Arr), Length(N) {}
 
-  QualifiedT *data() const { return Data; }
-  size_t size() const { return Length; }
+  QualifiedT *data() const noexcept { return Data; }
+  size_t size() const noexcept { return Length; }
 
-  auto begin() const { return data(); }
-  auto end() const { return data() + size(); }
+  auto begin() const noexcept { return data(); }
+  auto end() const noexcept { return data() + size(); }
 
-  bool empty() const { return size() == 0; }
+  bool empty() const noexcept { return size() == 0; }
 
   auto operator[](size_t Index) const { return data()[Index]; }
 
   // slice(n, m) - Chop off the first N elements of the array, and keep M
   // elements in the array.
-  auto slice(size_t N, size_t M) const { return ArrayRefBase(data() + N, M); }
+  auto slice(size_t N, size_t M) const noexcept {
+    return ArrayRefBase(data() + N, M);
+  }
   // slice(n) - Chop off the first N elements of the array.
-  auto slice(size_t N) const { return slice(N, size() - N); }
+  auto slice(size_t N) const noexcept { return slice(N, size() - N); }
 
   // Drop the first \p N elements of the array.
-  auto drop_front(size_t N = 1) const { return slice(N, size() - N); }
+  auto drop_front(size_t N = 1) const noexcept { return slice(N, size() - N); }
 
   // Drop the last \p N elements of the array.
-  auto drop_back(size_t N = 1) const { return slice(0, size() - N); }
+  auto drop_back(size_t N = 1) const noexcept { return slice(0, size() - N); }
 
   // Return a copy of *this with only the first \p N elements.
-  auto take_front(size_t N = 1) const {
+  auto take_front(size_t N = 1) const noexcept {
     if (N >= size())
       return *this;
     return drop_back(size() - N);
   }
 
   // Return a copy of *this with only the last \p N elements.
-  auto take_back(size_t N = 1) const {
+  auto take_back(size_t N = 1) const noexcept {
     if (N >= size())
       return *this;
     return drop_front(size() - N);
   }
 
   // equals - Check for element-wise equality.
-  bool equals(ArrayRefBase<QualifiedT> RHS) const {
+  bool equals(ArrayRefBase<QualifiedT> RHS) const noexcept {
     if (Length != RHS.Length)
       return false;
     auto First1 = begin();
