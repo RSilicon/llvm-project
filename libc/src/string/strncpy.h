@@ -13,7 +13,8 @@
 
 namespace __llvm_libc {
 
-char *strncpy(char *__restrict dest, const char *__restrict src, size_t n) noexcept;
+char *strncpy(char *__restrict dest, const char *__restrict src,
+              size_t n) noexcept;
 
 } // namespace __llvm_libc
 
