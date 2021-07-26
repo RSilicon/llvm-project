@@ -42,7 +42,7 @@ using _64 = Repeated<scalar::UINT64, 8>;
 //   with little change on the code side.
 // This implementation has been tuned for Neoverse-N1.
 static void memcpy_aarch64(char *__restrict dst, const char *__restrict src,
-                           size_t count) noexcept {
+                           size_t count) {
   if (count == 0)
     return;
   if (count == 1)

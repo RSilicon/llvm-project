@@ -14,8 +14,7 @@
 namespace __llvm_libc {
 namespace aarch64 {
 
-static int memcmp_impl(const char *lhs, const char *rhs,
-                       size_t count) noexcept {
+static int memcmp_impl(const char *lhs, const char *rhs, size_t count) {
   if (count == 0)
     return 0;
   if (count == 1)
