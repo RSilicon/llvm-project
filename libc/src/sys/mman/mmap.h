@@ -13,8 +13,7 @@
 
 namespace __llvm_libc {
 
-void *mmap(void *addr, size_t size, int prot, int flags, int fd,
-           off_t offset) noexcept;
+void *mmap(void *addr, size_t size, int prot, int flags, int fd, off_t offset);
 
 } // namespace __llvm_libc
 

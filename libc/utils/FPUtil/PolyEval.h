@@ -24,12 +24,10 @@
 namespace __llvm_libc {
 namespace fputil {
 
-template <typename T> static inline T polyeval(T x, T a0) noexcept {
-  return a0;
-}
+template <typename T> static inline T polyeval(T x, T a0) { return a0; }
 
 template <typename T, typename... Ts>
-static inline T polyeval(T x, T a0, Ts... a) noexcept {
+static inline T polyeval(T x, T a0, Ts... a) {
   return fma(x, polyeval(x, a...), a0);
 }
 
@@ -41,12 +39,10 @@ static inline T polyeval(T x, T a0, Ts... a) noexcept {
 namespace __llvm_libc {
 namespace fputil {
 
-template <typename T> static inline T polyeval(T x, T a0) noexcept {
-  return a0;
-}
+template <typename T> static inline T polyeval(T x, T a0) { return a0; }
 
 template <typename T, typename... Ts>
-static inline T polyeval(T x, T a0, Ts... a) noexcept {
+static inline T polyeval(T x, T a0, Ts... a) {
   return x * polyeval(x, a...) + a0;
 }
 

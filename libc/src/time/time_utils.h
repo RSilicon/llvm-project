@@ -68,15 +68,15 @@ struct TimeConstants {
 extern int64_t UpdateFromSeconds(int64_t total_seconds, struct tm *tm);
 
 // POSIX.1-2017 requires this.
-static inline time_t OutOfRange() noexcept {
+static inline time_t OutOfRange() {
   llvmlibc_errno = EOVERFLOW;
   return static_cast<time_t>(-1);
 }
 
-static inline void InvalidValue() noexcept { llvmlibc_errno = EINVAL; }
+static inline void InvalidValue() { llvmlibc_errno = EINVAL; }
 
 static inline char *asctime(const struct tm *timeptr, char *buffer,
-                            size_t bufferLength) noexcept {
+                            size_t bufferLength) {
   if (timeptr == nullptr || buffer == nullptr) {
     InvalidValue();
     return nullptr;
@@ -114,7 +114,7 @@ static inline char *asctime(const struct tm *timeptr, char *buffer,
 }
 
 static inline struct tm *gmtime_internal(const time_t *timer,
-                                         struct tm *result) noexcept {
+                                         struct tm *result) {
   int64_t seconds = *timer;
   // Update the tm structure's year, month, day, etc. from seconds.
   if (UpdateFromSeconds(seconds, result) < 0) {

@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int mtx_init(mtx_t *mutex, int type) noexcept;
+int mtx_init(mtx_t *mutex, int type);
 
 } // namespace __llvm_libc
 

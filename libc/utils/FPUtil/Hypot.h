@@ -18,10 +18,10 @@ namespace fputil {
 
 namespace internal {
 
-template <typename T> static inline T findLeadingOne(T mant, int &shift_length) noexcept;
+template <typename T> static inline T findLeadingOne(T mant, int &shift_length);
 
 template <>
-inline uint32_t findLeadingOne<uint32_t>(uint32_t mant, int &shift_length) noexcept {
+inline uint32_t findLeadingOne<uint32_t>(uint32_t mant, int &shift_length) {
   shift_length = 0;
   constexpr int nsteps = 5;
   constexpr uint32_t bounds[nsteps] = {1 << 16, 1 << 8, 1 << 4, 1 << 2, 1 << 1};
@@ -36,7 +36,7 @@ inline uint32_t findLeadingOne<uint32_t>(uint32_t mant, int &shift_length) noexc
 }
 
 template <>
-inline uint64_t findLeadingOne<uint64_t>(uint64_t mant, int &shift_length) noexcept {
+inline uint64_t findLeadingOne<uint64_t>(uint64_t mant, int &shift_length) {
   shift_length = 0;
   constexpr int nsteps = 6;
   constexpr uint64_t bounds[nsteps] = {1ULL << 32, 1ULL << 16, 1ULL << 8,
@@ -117,7 +117,7 @@ template <> struct DoubleLength<uint64_t> { using Type = __uint128_t; };
 //
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T hypot(T x, T y) noexcept {
+static inline T hypot(T x, T y) {
   using FPBits_t = FPBits<T>;
   using UIntType = typename FPBits<T>::UIntType;
   using DUIntType = typename DoubleLength<UIntType>::Type;

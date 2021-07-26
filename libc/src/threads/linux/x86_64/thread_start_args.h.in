@@ -10,7 +10,7 @@
 
 namespace __llvm_libc {
 
-__attribute__((always_inline)) inline uintptr_t get_start_args_addr() noexcept {
+__attribute__((always_inline)) inline uintptr_t get_start_args_addr() {
   // NOTE: For __builtin_frame_address to work reliably across compilers,
   // architectures and various optimization levels, the TU including this file
   // should be compiled with -fno-omit-frame-pointer.

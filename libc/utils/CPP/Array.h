@@ -43,7 +43,7 @@ template <class T, size_t N> struct Array {
   constexpr const_iterator begin() const { return Data; }
 
   constexpr iterator end() { return Data + N; }
-  const_iterator end() const noexcept { return Data + N; }
+  const_iterator end() const { return Data + N; }
 };
 
 } // namespace cpp

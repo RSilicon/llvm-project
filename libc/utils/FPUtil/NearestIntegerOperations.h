@@ -24,7 +24,7 @@ namespace fputil {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T trunc(T x) noexcept {
+static inline T trunc(T x) {
   FPBits<T> bits(x);
 
   // If x is infinity or NaN, return it.
@@ -56,7 +56,7 @@ static inline T trunc(T x) noexcept {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T ceil(T x) noexcept {
+static inline T ceil(T x) {
   FPBits<T> bits(x);
 
   // If x is infinity NaN or zero, return it.
@@ -95,7 +95,7 @@ static inline T ceil(T x) noexcept {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T floor(T x) noexcept {
+static inline T floor(T x) {
   FPBits<T> bits(x);
   if (bits.getSign()) {
     return -ceil(-x);
@@ -106,7 +106,7 @@ static inline T floor(T x) noexcept {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T round(T x) noexcept {
+static inline T round(T x) {
   using UIntType = typename FPBits<T>::UIntType;
   FPBits<T> bits(x);
 
@@ -158,7 +158,7 @@ static inline T round(T x) noexcept {
 
 template <typename T,
           cpp::EnableIfType<cpp::IsFloatingPointType<T>::Value, int> = 0>
-static inline T roundUsingCurrentRoundingMode(T x) noexcept {
+static inline T roundUsingCurrentRoundingMode(T x) {
   using UIntType = typename FPBits<T>::UIntType;
   FPBits<T> bits(x);
 
@@ -240,7 +240,7 @@ template <typename F, typename I,
           cpp::EnableIfType<cpp::IsFloatingPointType<F>::Value &&
                                 cpp::IsIntegral<I>::Value,
                             int> = 0>
-static inline I roundedFloatToSignedInteger(F x) noexcept {
+static inline I roundedFloatToSignedInteger(F x) {
   constexpr I IntegerMin = (I(1) << (sizeof(I) * 8 - 1));
   constexpr I IntegerMax = -(IntegerMin + 1);
   FPBits<F> bits(x);
@@ -284,7 +284,7 @@ template <typename F, typename I,
           cpp::EnableIfType<cpp::IsFloatingPointType<F>::Value &&
                                 cpp::IsIntegral<I>::Value,
                             int> = 0>
-static inline I roundToSignedInteger(F x) noexcept {
+static inline I roundToSignedInteger(F x) {
   return internal::roundedFloatToSignedInteger<F, I>(round(x));
 }
 
@@ -292,7 +292,7 @@ template <typename F, typename I,
           cpp::EnableIfType<cpp::IsFloatingPointType<F>::Value &&
                                 cpp::IsIntegral<I>::Value,
                             int> = 0>
-static inline I roundToSignedIntegerUsingCurrentRoundingMode(F x) noexcept {
+static inline I roundToSignedIntegerUsingCurrentRoundingMode(F x) {
   return internal::roundedFloatToSignedInteger<F, I>(
       roundUsingCurrentRoundingMode(x));
 }

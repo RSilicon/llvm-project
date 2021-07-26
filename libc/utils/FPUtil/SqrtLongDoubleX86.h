@@ -20,8 +20,7 @@ namespace fputil {
 namespace internal {
 
 template <>
-inline void normalize<long double>(int &exponent,
-                                   __uint128_t &mantissa) noexcept {
+inline void normalize<long double>(int &exponent, __uint128_t &mantissa) {
   // Use binary search to shift the leading 1 bit similar to float.
   // With MantissaWidth<long double> = 63, it will take
   // ceil(log2(63)) = 6 steps checking the mantissa bits.
@@ -43,7 +42,7 @@ inline void normalize<long double>(int &exponent,
 
 // Correctly rounded SQRT with round to nearest, ties to even.
 // Shift-and-add algorithm.
-template <> inline long double sqrt<long double, 0>(long double x) noexcept {
+template <> inline long double sqrt<long double, 0>(long double x) {
   using UIntType = typename FPBits<long double>::UIntType;
   constexpr UIntType One = UIntType(1)
                            << int(MantissaWidth<long double>::value);

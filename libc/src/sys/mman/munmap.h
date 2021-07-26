@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int munmap(void *addr, size_t size) noexcept;
+int munmap(void *addr, size_t size);
 
 } // namespace __llvm_libc
 

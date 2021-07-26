@@ -14,7 +14,7 @@
 
 namespace __llvm_libc {
 
-time_t mktime(struct tm *t1) noexcept;
+time_t mktime(struct tm *t1);
 
 } // namespace __llvm_libc
 
