@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double hypot(double x, double y) noexcept;
+double hypot(double x, double y);
 
 } // namespace __llvm_libc
 

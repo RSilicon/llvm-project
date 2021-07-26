@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float fabsf(float x) noexcept;
+float fabsf(float x);
 
 } // namespace __llvm_libc
 

@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float cosf(float x) noexcept;
+float cosf(float x);
 
 } // namespace __llvm_libc
 

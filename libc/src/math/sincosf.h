@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-void sincosf(float x, float *sinx, float *cosx) noexcept;
+void sincosf(float x, float *sinx, float *cosx);
 
 } // namespace __llvm_libc
 

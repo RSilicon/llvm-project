@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float copysignf(float x, float y) noexcept;
+float copysignf(float x, float y);
 
 } // namespace __llvm_libc
 

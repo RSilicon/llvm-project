@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double nearbyintl(long double x) noexcept;
+long double nearbyintl(long double x);
 
 } // namespace __llvm_libc
 

@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float remquof(float x, float y, int *exp) noexcept;
+float remquof(float x, float y, int *exp);
 
 } // namespace __llvm_libc
 

@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double fmin(double x, double y) noexcept;
+double fmin(double x, double y);
 
 } // namespace __llvm_libc
 

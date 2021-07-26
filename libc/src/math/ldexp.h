@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double ldexp(double x, int exp) noexcept;
+double ldexp(double x, int exp);
 
 } // namespace __llvm_libc
 

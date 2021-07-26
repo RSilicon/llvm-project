@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double truncl(long double x) noexcept;
+long double truncl(long double x);
 
 } // namespace __llvm_libc
 

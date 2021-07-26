@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-double round(double x) noexcept;
+double round(double x);
 
 } // namespace __llvm_libc
 

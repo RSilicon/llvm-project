@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double frexpl(long double x, int *exp) noexcept;
+long double frexpl(long double x, int *exp);
 
 } // namespace __llvm_libc
 

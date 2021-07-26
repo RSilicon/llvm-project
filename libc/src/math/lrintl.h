@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long lrintl(long double x) noexcept;
+long lrintl(long double x);
 
 } // namespace __llvm_libc
 

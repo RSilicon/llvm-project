@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long double modfl(long double x, long double *iptr) noexcept;
+long double modfl(long double x, long double *iptr);
 
 } // namespace __llvm_libc
 

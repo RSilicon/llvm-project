@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-float logbf(float x) noexcept;
+float logbf(float x);
 
 } // namespace __llvm_libc
 

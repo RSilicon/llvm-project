@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-long long llround(double x) noexcept;
+long long llround(double x);
 
 } // namespace __llvm_libc
 
