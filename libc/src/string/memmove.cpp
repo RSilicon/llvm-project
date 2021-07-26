@@ -16,7 +16,7 @@
 namespace __llvm_libc {
 
 static inline void move_byte_forward(char *dest_m, const char *src_m,
-                                     size_t count) {
+                                     size_t count) noexcept {
   for (size_t offset = 0; count; --count, ++offset)
     dest_m[offset] = src_m[offset];
 }
