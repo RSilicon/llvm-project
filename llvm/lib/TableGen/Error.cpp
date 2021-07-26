@@ -11,11 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "llvm/TableGen/Error.h"
 #include "llvm/ADT/Twine.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/WithColor.h"
-#include "llvm/TableGen/Error.h"
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/TableGen/Record.h"
 #include <cstdlib>
 
@@ -42,9 +42,7 @@ static void PrintMessage(ArrayRef<SMLoc> Loc, SourceMgr::DiagKind Kind,
 
 // Functions to print notes.
 
-void PrintNote(const Twine &Msg) {
-  WithColor::note() << Msg << "\n";
-}
+void PrintNote(const Twine &Msg) { WithColor::note() << Msg << "\n"; }
 
 void PrintNote(ArrayRef<SMLoc> NoteLoc, const Twine &Msg) {
   PrintMessage(NoteLoc, SourceMgr::DK_Note, Msg);
@@ -158,7 +156,7 @@ void PrintFatalError(const RecordVal *RecVal, const Twine &Msg) {
 // If not, print a nonfatal error along with the message.
 void CheckAssert(SMLoc Loc, Init *Condition, Init *Message) {
   auto *CondValue = dyn_cast_or_null<IntInit>(
-                        Condition->convertInitializerTo(IntRecTy::get()));
+      Condition->convertInitializerTo(IntRecTy::get()));
   if (!CondValue)
     PrintError(Loc, "assert condition must of type bit, bits, or int.");
   else if (!CondValue->getValue()) {
