@@ -15,7 +15,7 @@ namespace __llvm_libc {
 
 using sighandler_t = __sighandler_t;
 
-sighandler_t signal(int signum, sighandler_t handler) noexcept;
+sighandler_t signal(int signum, sighandler_t handler);
 
 } // namespace __llvm_libc
 

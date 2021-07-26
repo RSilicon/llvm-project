@@ -14,7 +14,7 @@
 
 namespace __llvm_libc {
 
-[[noreturn]] LLVM_LIBC_FUNCTION(void, abort, ()) {
+LLVM_LIBC_FUNCTION(void, abort, ()) {
   // TODO: When sigprocmask and sigaction land:
   // Unblock SIGABRT, raise it, if it was ignored or the handler returned,
   // change its action to SIG_DFL, raise it again.

@@ -15,8 +15,8 @@
 
 namespace __llvm_libc {
 
-LLVM_LIBC_FUNCTION(int, sigdelset, (sigset_t * set, int signum)) noexcept {
-  if (!set || static_cast<unsigned>(signum - 1) >= (8 * sizeof(sigset_t))) {
+LLVM_LIBC_FUNCTION(int, sigdelset, (sigset_t * set, int signum)) {
+  if (!set || (unsigned)(signum - 1) >= (8 * sizeof(sigset_t))) {
     llvmlibc_errno = EINVAL;
     return -1;
   }

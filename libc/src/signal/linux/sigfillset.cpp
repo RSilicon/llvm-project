@@ -15,7 +15,7 @@
 
 namespace __llvm_libc {
 
-LLVM_LIBC_FUNCTION(int, sigfillset, (sigset_t * set)) noexcept {
+LLVM_LIBC_FUNCTION(int, sigfillset, (sigset_t * set)) {
   if (!set) {
     llvmlibc_errno = EINVAL;
     return -1;
