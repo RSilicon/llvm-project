@@ -72,12 +72,11 @@ template <size_t alignment> intptr_t offset_to_next_aligned(const void *ptr) {
 }
 
 // Returns the offset from `ptr` to the next cache line.
-static inline intptr_t offset_to_next_cache_line(const void *ptr) noexcept {
+static inline intptr_t offset_to_next_cache_line(const void *ptr) {
   return offset_to_next_aligned<LLVM_LIBC_CACHELINE_SIZE>(ptr);
 }
 
-template <size_t alignment, typename T>
-static T *assume_aligned(T *ptr) noexcept {
+template <size_t alignment, typename T> static T *assume_aligned(T *ptr) {
   return reinterpret_cast<T *>(__builtin_assume_aligned(ptr, alignment));
 }
 
