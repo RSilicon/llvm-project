@@ -12,6 +12,8 @@
 
 namespace __llvm_libc {
 
-LLVM_LIBC_FUNCTION(int, isascii, (int c)) { return (c & (~0x7f)) == 0; }
+LLVM_LIBC_FUNCTION(int, isascii, (int c)) {
+  return static_cast<unsigned>(c) <= 0x7f;
+}
 
 } // namespace __llvm_libc

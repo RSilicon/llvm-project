@@ -15,7 +15,7 @@ namespace __llvm_libc {
 // TODO: Currently restricted to default locale.
 // These should be extended using locale information.
 LLVM_LIBC_FUNCTION(int, isspace, (int c)) {
-  const unsigned ch = c;
+  const unsigned ch = static_cast<unsigned>(c);
   return ch == ' ' || (ch - '\t') < 5;
 }
 
