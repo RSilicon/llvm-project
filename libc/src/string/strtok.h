@@ -12,7 +12,7 @@
 namespace __llvm_libc {
 
 char *strtok(char *__restrict src,
-             const char *__restrict delimiter_string) noexcept;
+             const char *__restrict delimiter_string);
 
 } // namespace __llvm_libc
 

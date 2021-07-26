@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-char *strcat(char *__restrict dest, const char *__restrict src) noexcept;
+char *strcat(char *__restrict dest, const char *__restrict src);
 
 } // namespace __llvm_libc
 

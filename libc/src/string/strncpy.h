@@ -14,7 +14,7 @@
 namespace __llvm_libc {
 
 char *strncpy(char *__restrict dest, const char *__restrict src,
-              size_t n) noexcept;
+              size_t n);
 
 } // namespace __llvm_libc
 

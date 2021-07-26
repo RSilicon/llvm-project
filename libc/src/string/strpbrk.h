@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-char *strpbrk(const char *src, const char *breakset) noexcept;
+char *strpbrk(const char *src, const char *breakset);
 
 } // namespace __llvm_libc
 

@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-size_t strlen(const char *src) noexcept;
+size_t strlen(const char *src);
 
 } // namespace __llvm_libc
 

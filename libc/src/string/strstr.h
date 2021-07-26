@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-char *strstr(const char *haystack, const char *needle) noexcept;
+char *strstr(const char *haystack, const char *needle);
 
 } // namespace __llvm_libc
 

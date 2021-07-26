@@ -63,7 +63,7 @@ static void CopyRepMovsb(char *__restrict dst, const char *__restrict src,
 // - As compilers and processors get better, the generated code is improved
 //   with little change on the code side.
 static void memcpy_x86(char *__restrict dst, const char *__restrict src,
-                       size_t count) noexcept {
+                       size_t count) {
   // Use x86 strategies (_1, _2, _3 ...)
   using namespace __llvm_libc::x86;
 
