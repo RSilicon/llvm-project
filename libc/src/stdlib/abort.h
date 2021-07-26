@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-LLVM_ATTRIBUTE_NORETURN void abort();
+[[noreturn]] void abort();
 
 } // namespace __llvm_libc
 
