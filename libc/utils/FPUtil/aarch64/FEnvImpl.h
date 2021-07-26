@@ -44,7 +44,7 @@ struct FEnv {
   static constexpr uint32_t ExceptionStatusFlagsBitPosition = 0;
   static constexpr uint32_t ExceptionControlFlagsBitPosition = 8;
 
-  static constexpr inline uint32_t getStatusValueForExcept(int excepts) {
+  static inline uint32_t getStatusValueForExcept(int excepts) {
     return (excepts & FE_INVALID ? Invalid : 0) |
            (excepts & FE_DIVBYZERO ? DivByZero : 0) |
            (excepts & FE_OVERFLOW ? Overflow : 0) |
@@ -52,7 +52,7 @@ struct FEnv {
            (excepts & FE_INEXACT ? Inexact : 0);
   }
 
-  static constexpr inline int exceptionStatusToMacro(uint32_t status) {
+  static inline int exceptionStatusToMacro(uint32_t status) {
     return (status & Invalid ? FE_INVALID : 0) |
            (status & DivByZero ? FE_DIVBYZERO : 0) |
            (status & Overflow ? FE_OVERFLOW : 0) |
