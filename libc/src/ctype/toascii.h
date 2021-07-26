@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int toascii(int c);
+int toascii(int c) noexcept;
 
 } // namespace __llvm_libc
 

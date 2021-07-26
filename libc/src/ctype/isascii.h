@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int isascii(int c);
+int isascii(int c) noexcept;
 
 } // namespace __llvm_libc
 

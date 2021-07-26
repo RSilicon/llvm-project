@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int toupper(int c);
+int toupper(int c) noexcept;
 
 } // namespace __llvm_libc
 

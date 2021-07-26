@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int isdigit(int c);
+int isdigit(int c) noexcept;
 
 } // namespace __llvm_libc
 

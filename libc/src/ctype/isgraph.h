@@ -11,7 +11,7 @@
 
 namespace __llvm_libc {
 
-int isgraph(int c);
+int isgraph(int c) noexcept;
 
 } // namespace __llvm_libc
 
