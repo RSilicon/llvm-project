@@ -15,7 +15,7 @@
 namespace __llvm_libc {
 
 int sigaction(int signal, const struct __sigaction *__restrict libc_new,
-              struct __sigaction *__restrict libc_old);
+              struct __sigaction *__restrict libc_old) noexcept;
 
 } // namespace __llvm_libc
 

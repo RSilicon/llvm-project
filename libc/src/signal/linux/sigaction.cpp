@@ -21,7 +21,7 @@ namespace __llvm_libc {
 extern "C" void __restore_rt();
 
 template <typename T, typename V>
-static void copySigaction(T &dest, const V &source) {
+static void copySigaction(T &dest, const V &source) noexcept {
   dest.sa_handler = source.sa_handler;
   dest.sa_mask = source.sa_mask;
   dest.sa_flags = source.sa_flags;

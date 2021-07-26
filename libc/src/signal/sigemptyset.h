@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int sigemptyset(sigset_t *set);
+int sigemptyset(sigset_t *set) noexcept;
 
 } // namespace __llvm_libc
 

@@ -19,7 +19,7 @@ struct FILE {
 
   using write_function_t = size_t(FILE *, const char *, size_t);
 
-  write_function_t *write;
+  write_function_t *write noexcept;
 };
 
 } // namespace __llvm_libc
