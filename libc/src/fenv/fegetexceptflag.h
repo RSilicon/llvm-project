@@ -13,7 +13,7 @@
 
 namespace __llvm_libc {
 
-int fegetexceptflag(fexcept_t *, int excepts);
+int fegetexceptflag(fexcept_t *, int excepts) noexcept;
 
 } // namespace __llvm_libc
 
