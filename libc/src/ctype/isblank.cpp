@@ -14,8 +14,6 @@ namespace __llvm_libc {
 
 // TODO: Currently restricted to default locale.
 // These should be extended using locale information.
-LLVM_LIBC_FUNCTION(int, isblank, (int c)) {
-  return c == ' ' || c == '\t';
-}
+LLVM_LIBC_FUNCTION(int, isblank, (int c)) { return c == ' ' || c == '\t'; }
 
 } // namespace __llvm_libc
