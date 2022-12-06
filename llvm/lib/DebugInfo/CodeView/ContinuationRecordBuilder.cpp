@@ -23,7 +23,7 @@ static void addPadding(BinaryStreamWriter &Writer) {
   if (Align == 0)
     return;
 
-  int PaddingBytes = 4 - Align;
+  uint32_t PaddingBytes = 4 - Align;
   while (PaddingBytes > 0) {
     uint8_t Pad = static_cast<uint8_t>(LF_PAD0 + PaddingBytes);
     cantFail(Writer.writeInteger(Pad));
