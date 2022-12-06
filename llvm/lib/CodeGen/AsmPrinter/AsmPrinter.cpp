@@ -3952,7 +3952,7 @@ GCMetadataPrinter *AsmPrinter::getOrCreateGCPrinter(GCStrategy &S) {
   if (!Inserted)
     return GCPI->second.get();
 
-  auto Name = S.getName();
+  const auto& Name = S.getName();
 
   for (const GCMetadataPrinterRegistry::entry &GCMetaPrinter :
        GCMetadataPrinterRegistry::entries())

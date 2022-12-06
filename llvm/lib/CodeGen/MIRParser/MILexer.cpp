@@ -139,7 +139,7 @@ static std::string unescapeQuotedString(StringRef Value) {
         continue;
       }
       if (isxdigit(C.peek(1)) && isxdigit(C.peek(2))) {
-        Str += hexDigitValue(C.peek(1)) * 16 + hexDigitValue(C.peek(2));
+        Str += std::to_string(hexDigitValue(C.peek(1)) * 16 + hexDigitValue(C.peek(2)));
         C.advance(3);
         continue;
       }

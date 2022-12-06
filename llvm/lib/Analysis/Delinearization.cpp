@@ -562,7 +562,7 @@ bool llvm::tryDelinearizeFixedSizeImpl(
 namespace {
 
 class Delinearization : public FunctionPass {
-  Delinearization(const Delinearization &); // do not implement
+  Delinearization(const Delinearization &) = delete; // do not implement
 protected:
   Function *F;
   LoopInfo *LI;

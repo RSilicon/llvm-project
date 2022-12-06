@@ -109,7 +109,7 @@ class FileToRemoveList {
 public:
   // Not signal-safe.
   ~FileToRemoveList() {
-    if (FileToRemoveList *N = Next.exchange(nullptr))
+
       delete N;
     if (char *F = Filename.exchange(nullptr))
       free(F);
@@ -198,7 +198,7 @@ struct FilesToRemoveCleanup {
   // Not signal-safe.
   ~FilesToRemoveCleanup() {
     FileToRemoveList *Head = FilesToRemove.exchange(nullptr);
-    if (Head)
+
       delete Head;
   }
 };

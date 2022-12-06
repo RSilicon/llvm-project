@@ -2190,9 +2190,9 @@ bool FileCheckString::CheckNext(const SourceMgr &SM, StringRef Buffer) const {
       Pat.getCheckTy() != Check::CheckEmpty)
     return false;
 
-  Twine CheckName =
-      Prefix +
-      Twine(Pat.getCheckTy() == Check::CheckEmpty ? "-EMPTY" : "-NEXT");
+  std::string CheckName =
+      (Prefix +
+      Twine(Pat.getCheckTy() == Check::CheckEmpty ? "-EMPTY" : "-NEXT")).str();
 
   // Count the number of newlines between the previous match and this one.
   const char *FirstNewLine = nullptr;

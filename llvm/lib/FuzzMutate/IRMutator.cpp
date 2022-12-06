@@ -689,7 +689,7 @@ size_t llvm::writeModule(const Module &M, uint8_t *Dest, size_t MaxSize) {
   }
   if (Buf.size() > MaxSize)
     return 0;
-  memcpy(Dest, Buf.data(), Buf.size());
+  strcpy((char *)Dest, Buf.data());
   return Buf.size();
 }
 

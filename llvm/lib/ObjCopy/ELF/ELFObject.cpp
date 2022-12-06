@@ -1292,7 +1292,7 @@ void BinaryELFBuilder::addData(SymbolTableSection *SymTab) {
   std::replace_if(
       std::begin(SanitizedFilename), std::end(SanitizedFilename),
       [](char C) { return !isAlnum(C); }, '_');
-  Twine Prefix = Twine("_binary_") + SanitizedFilename;
+  std::string Prefix = (Twine("_binary_") + SanitizedFilename).str();
 
   SymTab->addSymbol(Prefix + "_start", STB_GLOBAL, STT_NOTYPE, &DataSection,
                     /*Value=*/0, NewSymbolVisibility, 0, 0);
