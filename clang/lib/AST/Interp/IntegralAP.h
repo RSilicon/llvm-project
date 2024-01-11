@@ -204,15 +204,11 @@ public:
   }
 
   static bool rem(IntegralAP A, IntegralAP B, unsigned OpBits, IntegralAP *R) {
-    // FIXME: Implement.
-    assert(false);
-    return false;
+    return CheckDivUB<std::divides>(A, B, OpBits, R);
   }
 
   static bool div(IntegralAP A, IntegralAP B, unsigned OpBits, IntegralAP *R) {
-    // FIXME: Implement.
-    assert(false);
-    return false;
+    return CheckDivUB<std::modulus>(A, B, OpBits, R);
   }
 
   static bool bitAnd(IntegralAP A, IntegralAP B, unsigned OpBits,
@@ -266,6 +262,30 @@ private:
     if constexpr (!Signed) {
       R->V = Op<APInt>{}(A.V, B.V);
       return false;
+    }
+
+    const APSInt &LHS = A.toAPSInt();
+    const APSInt &RHS = B.toAPSInt();
+    APSInt Value = Op<APSInt>{}(LHS.extend(BitWidth), RHS.extend(BitWidth));
+    APSInt Result = Value.trunc(LHS.getBitWidth());
+    R->V = Result;
+
+    return Result.extend(BitWidth) != Value;
+  }
+
+  template <template <typename T> class Op>
+  static bool CheckDivUB(const IntegralAP &A, const IntegralAP &B,
+                               unsigned BitWidth, IntegralAP *R) {
+    if constexpr (!Signed) {
+      R->V = Op<APInt>{}(A.V, B.V);
+      return false;
+    }
+
+    if (B.V == 0)
+    {
+       // Division by zero error
+       assert(false);
+       return true;
     }
 
     const APSInt &LHS = A.toAPSInt();
