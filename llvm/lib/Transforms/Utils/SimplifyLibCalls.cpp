@@ -2635,6 +2635,68 @@ Value *LibCallSimplifier::optimizeTan(CallInst *CI, IRBuilderBase &B) {
   return Ret;
 }
 
+Value *LibCallSimplifier::optimizeSinh(CallInst *CI, IRBuilderBase &B) {
+  Module *M = CI->getModule();
+  Function *Callee = CI->getCalledFunction();
+  Value *Ret = nullptr;
+  StringRef Name = Callee->getName();
+  if (UnsafeFPShrink && Name == "sinh" && hasFloatVersion(M, Name))
+    Ret = optimizeUnaryDoubleFP(CI, B, TLI, true);
+
+  Value *Op1 = CI->getArgOperand(0);
+  auto *OpC = dyn_cast<CallInst>(Op1);
+  if (!OpC)
+    return Ret;
+
+  // Both calls must be 'fast' in order to remove them.
+  if (!CI->isFast() || !OpC->isFast())
+    return Ret;
+
+  // sinh(asinh(x)) -> x
+  // sinhf(asinhf(x)) -> x
+  // sinhl(asinhl(x)) -> x
+  LibFunc Func;
+  Function *F = OpC->getCalledFunction();
+  if (F && TLI->getLibFunc(F->getName(), Func) &&
+      isLibFuncEmittable(M, TLI, Func) &&
+      ((Func == LibFunc_asinh && Callee->getName() == "sinh") ||
+       (Func == LibFunc_asinhf && Callee->getName() == "sinhf") ||
+       (Func == LibFunc_asinhl && Callee->getName() == "sinhl")))
+    Ret = OpC->getArgOperand(0);
+  return Ret;
+}
+
+Value *LibCallSimplifier::optimizeCosh(CallInst *CI, IRBuilderBase &B) {
+  Module *M = CI->getModule();
+  Function *Callee = CI->getCalledFunction();
+  Value *Ret = nullptr;
+  StringRef Name = Callee->getName();
+  if (UnsafeFPShrink && Name == "cosh" && hasFloatVersion(M, Name))
+    Ret = optimizeUnaryDoubleFP(CI, B, TLI, true);
+
+  Value *Op1 = CI->getArgOperand(0);
+  auto *OpC = dyn_cast<CallInst>(Op1);
+  if (!OpC)
+    return Ret;
+
+  // Both calls must be 'fast' in order to remove them.
+  if (!CI->isFast() || !OpC->isFast())
+    return Ret;
+
+  // cosh(acosh(x)) -> x
+  // coshf(acoshf(x)) -> x
+  // coshl(acoshl(x)) -> x
+  LibFunc Func;
+  Function *F = OpC->getCalledFunction();
+  if (F && TLI->getLibFunc(F->getName(), Func) &&
+      isLibFuncEmittable(M, TLI, Func) &&
+      ((Func == LibFunc_acosh && Callee->getName() == "cosh") ||
+       (Func == LibFunc_acoshf && Callee->getName() == "coshf") ||
+       (Func == LibFunc_acoshl && Callee->getName() == "coshl")))
+    Ret = OpC->getArgOperand(0);
+  return Ret;
+}
+
 static bool isTrigLibCall(CallInst *CI) {
   // We can only hope to do anything useful if we can ignore things like errno
   // and floating-point exceptions.
@@ -3625,6 +3687,14 @@ Value *LibCallSimplifier::optimizeFloatingPointLibCall(CallInst *CI,
   case LibFunc_tanf:
   case LibFunc_tanl:
     return optimizeTan(CI, Builder);
+  case LibFunc_sinh:
+  case LibFunc_sinhf:
+  case LibFunc_sinhl:
+    return optimizeSinh(CI, Builder);
+  case LibFunc_cosh:
+  case LibFunc_coshf:
+  case LibFunc_coshl:
+    return optimizeCosh(CI, Builder);
   case LibFunc_ceil:
     return replaceUnaryCall(CI, Builder, Intrinsic::ceil);
   case LibFunc_floor:
@@ -3646,13 +3716,11 @@ Value *LibCallSimplifier::optimizeFloatingPointLibCall(CallInst *CI,
   case LibFunc_atan:
   case LibFunc_atanh:
   case LibFunc_cbrt:
-  case LibFunc_cosh:
   case LibFunc_exp:
   case LibFunc_exp10:
   case LibFunc_expm1:
   case LibFunc_cos:
   case LibFunc_sin:
-  case LibFunc_sinh:
   case LibFunc_tanh:
     if (UnsafeFPShrink && hasFloatVersion(M, CI->getCalledFunction()->getName()))
       return optimizeUnaryDoubleFP(CI, Builder, TLI, true);
