@@ -2503,8 +2503,12 @@ unsigned LLParser::parseNoFPClassAttr() {
     uint64_t Value = 0;
     unsigned TestMask = keywordToFPClassTest(Lex.getKind());
     if (TestMask != 0) {
+      // Disallow overlapping masks to avoid copy paste errors
+      if ((Mask & TestMask) != 0) {
+        error(Lex.getLoc(), "overlapping masks detected");
+        return 0;
+      }
       Mask |= TestMask;
-      // TODO: Disallow overlapping masks to avoid copy paste errors
     } else if (Mask == 0 && Lex.getKind() == lltok::APSInt &&
                !parseUInt64(Value)) {
       if (Value == 0 || (Value & ~static_cast<unsigned>(fcAllFlags)) != 0) {
