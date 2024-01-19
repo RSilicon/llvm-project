@@ -1200,7 +1200,6 @@ static bool UpgradeIntrinsicFunction1(Function *F, Function *&NewFn) {
       // The following nvvm intrinsics correspond exactly to an LLVM idiom, but
       // not to an intrinsic alone.  We expand them in UpgradeIntrinsicCall.
       //
-      // TODO: We could add lohi.i2d.
       bool Expand = false;
       if (Name.consume_front("abs."))
         // nvvm.abs.{i,ii}
@@ -1214,6 +1213,8 @@ static bool UpgradeIntrinsicFunction1(Function *F, Function *&NewFn) {
       else if (Name.consume_front("atomic.load.add."))
         // nvvm.atomic.load.add.{f32.p,f64.p}
         Expand = Name.starts_with("f32.p") || Name.starts_with("f64.p");
+      else if (Name == "lohi.i2d")
+        Expand = true;
       else
         Expand = false;
 
