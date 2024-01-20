@@ -3263,7 +3263,18 @@ AddFunctionTypeQualsToCompletionString(CodeCompletionBuilder &Result,
   if (!Proto || !Proto->getMethodQuals())
     return;
 
-  // FIXME: Add ref-qualifier!
+  switch (Proto->getRefQualifier()) {
+  case FunctionProtoType::RQ_None:
+    // No ref-qualifier, no need to add anything.
+    break;
+  case FunctionProtoType::RQ_LValue:
+    Result.AddInformativeChunk(" &");
+    break;
+  case FunctionProtoType::RQ_RValue:
+    Result.AddInformativeChunk(" &&");
+    break;
+}
+
 
   // Handle single qualifiers without copying
   if (Proto->getMethodQuals().hasOnlyConst()) {
