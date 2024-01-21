@@ -84,9 +84,16 @@ static Value *simplifyValueKnownNonZero(Value *V, InstCombinerImpl &IC,
     }
   }
 
-  // TODO: Lots more we could do here:
-  //    If V is a phi node, we can call this on each of its operands.
-  //    "select cond, X, 0" can simplify to "X".
+  // If V is a phi node, call this function on each of its operands.
+  if (auto *Phi = dyn_cast<PHINode>(V)) {
+    for (unsigned i = 0, e = Phi->getNumIncomingValues(); i != e; ++i) {
+      Value *IncValue = Phi->getIncomingValue(i);
+      if (Value *V2 = simplifyValueKnownNonZero(IncValue, IC, CxtI)) {
+        Phi->setIncomingValue(i, V2);
+        MadeChange = true;
+      }
+    }
+  }
 
   return MadeChange ? V : nullptr;
 }
