@@ -897,9 +897,13 @@ def add_and_or_is_add : PatFrags<(ops node:$lhs, node:$rhs),
    return CurDAG->haveNoCommonBitsSet(N->getOperand(0), N->getOperand(1));
 }]> {
   let GISelPredicateCode = [{
-     // Only handle G_ADD for now. FIXME. build capability to compute whether
-     // operands of G_OR have common bits set or not.
-     return MI.getOpcode() == TargetOpcode::G_ADD;
+    // Handle both G_ADD and G_OR when operands of G_OR have no common bits set.
+    if (MI.getOpcode() == TargetOpcode::G_ADD)
+      return true;
+    if (MI.getOpcode() == TargetOpcode::G_OR &&
+      CurDAG->haveNoCommonBitsSet(MI.getOperand(0), MI.getOperand(1)))
+        return true;
+    return false;
   }];
 }
 
