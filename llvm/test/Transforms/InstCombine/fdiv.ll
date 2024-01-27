@@ -992,3 +992,61 @@ define float @fdiv_nnan_neg_zero_f32(float %x) {
   %fdiv = fdiv nnan float %x, -0.0
   ret float %fdiv
 }
+
+; C / (X * C2) --> (C / C2) / X
+define float @fdiv_fmul_fdiv(float %x) {
+; CHECK-LABEL: @fdiv_fmul_fdiv(
+; CHECK-NEXT:    [[FDIV:%.*]] = fdiv float 1.000000e+01, [[X:%.*]]
+; CHECK-NEXT:    [[FMUL:%.*]] = fmul float [[FDIV]], 2.000000e+00
+; CHECK-NEXT:    [[RES:%.*]] = fdiv float [[FMUL]], 5.000000e+00
+; CHECK-NEXT:    ret float [[RES]]
+;
+  %fdiv = fdiv float 10.0, %x   ; C = 10.0, X = %x, C2 = 2.0
+  %fmul = fmul float %fdiv, 2.0 ; Introduce (X * C2) pattern
+  %res = fdiv float %fmul, 5.0 ; Apply transformation
+  ret float %res
+}
+
+; C / (X / C2) --> (C * C2) / X
+define float @fdiv_fdiv_fmul(float %x) {
+; CHECK-LABEL: @fdiv_fdiv_fmul(
+; CHECK-NEXT:    [[FDIV1:%.*]] = fdiv float 1.000000e+01, [[X:%.*]]
+; CHECK-NEXT:    [[FDIV2:%.*]] = fmul float [[FDIV1]], 5.000000e-01
+; CHECK-NEXT:    [[RES:%.*]] = fmul float [[FDIV2]], 5.000000e+00
+; CHECK-NEXT:    ret float [[RES]]
+;
+  %fdiv1 = fdiv float 10.0, %x   ; C = 10.0, X = %x, C2 = 2.0
+  %fdiv2 = fdiv float %fdiv1, 2.0 ; Introduce (X / C2) pattern
+  %res = fmul float %fdiv2, 5.0 ; Apply transformation
+  ret float %res
+}
+
+; (C / X) * C1 --> (C * C1) / X
+define float @fdiv_fmul_fdiv1(float %x) {
+; CHECK-LABEL: @fdiv_fmul_fdiv1(
+; CHECK-NEXT:    [[FDIV1:%.*]] = fdiv float 1.000000e+01, [[X:%.*]]
+; CHECK-NEXT:    [[FMUL:%.*]] = fmul float [[FDIV1]], 2.000000e+00
+; CHECK-NEXT:    [[RES:%.*]] = fdiv float 2.000000e+01, [[FMUL]]
+; CHECK-NEXT:    ret float [[RES]]
+;
+  %fdiv1 = fdiv float 10.0, %x   ; C = 10.0, X = %x, C1 = 2.0
+  %fmul = fmul float %fdiv1, 2.0 ; Introduce (C / X) * C1 pattern
+  %res = fdiv float 20.0, %fmul   ; Apply transformation
+  ret float %res
+}
+
+; (C / X) / C1 --> C / (X * C1)
+define float @fdiv_fdiv_div_fmul_fdiv(float %x) {
+; CHECK-LABEL: @fdiv_fdiv_div_fmul_fdiv(
+; CHECK-NEXT:    [[FDIV3:%.*]] = fdiv float 1.000000e+01, [[X:%.*]]
+; CHECK-NEXT:    [[FMUL:%.*]] = fmul float [[X]], 2.000000e+00
+; CHECK-NEXT:    [[RES:%.*]] = fdiv float [[FDIV3]], [[FMUL]]
+; CHECK-NEXT:    ret float [[RES]]
+;
+  %fdiv1 = fdiv float 10.0, %x   ; C = 10.0, X = %x, C1 = 2.0
+  %fdiv2 = fdiv float %fdiv1, 2.0 ; Introduce (C / X) / C1 pattern
+  %fdiv3 = fdiv float 10.0, %x   ; Apply transformation
+  %fmul = fmul float %x, 2.0    ; Adjust for X * C1
+  %res = fdiv float %fdiv3, %fmul
+  ret float %res
+}
