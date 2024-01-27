@@ -1643,15 +1643,22 @@ static Instruction *foldFDivConstantDividend(BinaryOperator &I) {
   if (!I.hasAllowReassoc() || !I.hasAllowReciprocal())
     return nullptr;
 
-  // Try to reassociate C / X expressions where X includes another constant.
-  Constant *C2, *NewC = nullptr;
-  if (match(I.getOperand(1), m_FMul(m_Value(X), m_Constant(C2)))) {
-    // C / (X * C2) --> (C / C2) / X
-    NewC = ConstantFoldBinaryOpOperands(Instruction::FDiv, C, C2, DL);
-  } else if (match(I.getOperand(1), m_FDiv(m_Value(X), m_Constant(C2)))) {
-    // C / (X / C2) --> (C * C2) / X
-    NewC = ConstantFoldBinaryOpOperands(Instruction::FMul, C, C2, DL);
-  }
+// Try to reassociate C / X expressions where X includes another constant.
+Constant *C2, *NewC = nullptr;
+if (match(I.getOperand(1), m_FMul(m_Value(X), m_Constant(C2)))) {
+  // C / (X * C2) --> (C / C2) / X
+  NewC = ConstantFoldBinaryOpOperands(Instruction::FDiv, C, C2, DL);
+} else if (match(I.getOperand(1), m_FDiv(m_Value(X), m_Constant(C2)))) {
+  // C / (X / C2) --> (C * C2) / X
+  NewC = ConstantFoldBinaryOpOperands(Instruction::FMul, C, C2, DL);
+} else if (match(I.getOperand(1), m_FMul(m_FDiv(m_Constant(C), m_Value(X)), m_Constant(C2)))) {
+  // (C / X) * C2 --> (C * C2) / X
+  NewC = ConstantFoldBinaryOpOperands(Instruction::FMul, C, C2, DL);
+} else if (match(I.getOperand(1), m_FDiv(m_FDiv(m_Constant(C), m_Value(X)), m_Constant(C2)))) {
+  // (C / X) / C2 --> (C / C2) / X
+  NewC = ConstantFoldBinaryOpOperands(Instruction::FDiv, C, C2, DL);
+}
+
   // Disallow denormal constants because we don't know what would happen
   // on all targets.
   // TODO: Use Intrinsic::canonicalize or let function attributes tell us that
