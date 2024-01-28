@@ -1651,10 +1651,10 @@ if (match(I.getOperand(1), m_FMul(m_Value(X), m_Constant(C2)))) {
 } else if (match(I.getOperand(1), m_FDiv(m_Value(X), m_Constant(C2)))) {
   // C / (X / C2) --> (C * C2) / X
   NewC = ConstantFoldBinaryOpOperands(Instruction::FMul, C, C2, DL);
-} else if (match(I.getOperand(1), m_FMul(m_FDiv(m_Constant(C), m_Value(X)), m_Constant(C2)))) {
+} else if (match(I.getOperand(0), m_FMul(m_Value(X), m_Constant(C2)))) {
   // (C / X) * C2 --> (C * C2) / X
   NewC = ConstantFoldBinaryOpOperands(Instruction::FMul, C, C2, DL);
-} else if (match(I.getOperand(1), m_FDiv(m_FDiv(m_Constant(C), m_Value(X)), m_Constant(C2)))) {
+} else if (match(I.getOperand(0), m_FDiv(m_Value(X), m_Constant(C2)))) {
   // (C / X) / C2 --> (C / C2) / X
   NewC = ConstantFoldBinaryOpOperands(Instruction::FDiv, C, C2, DL);
 }
