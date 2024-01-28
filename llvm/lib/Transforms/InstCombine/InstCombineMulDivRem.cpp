@@ -1645,13 +1645,13 @@ static Instruction *foldFDivConstantDividend(BinaryOperator &I) {
 
 // Try to reassociate C / X expressions where X includes another constant.
 Constant *C2, *NewC = nullptr;
-if (match(I.getOperand(1), m_FMul(m_Value(X), m_Constant(C2)))) {
+if (match(I.getOperand(1), m_c_FMul(m_Value(X), m_Constant(C2)))) {
   // C / (X * C2) --> (C / C2) / X
   NewC = ConstantFoldBinaryOpOperands(Instruction::FDiv, C, C2, DL);
 } else if (match(I.getOperand(1), m_FDiv(m_Value(X), m_Constant(C2)))) {
   // C / (X / C2) --> (C * C2) / X
   NewC = ConstantFoldBinaryOpOperands(Instruction::FMul, C, C2, DL);
-} else if (match(I.getOperand(0), m_FMul(m_Value(X), m_Constant(C2)))) {
+} else if (match(I.getOperand(0), m_c_FMul(m_Value(X), m_Constant(C2)))) {
   // (C / X) * C2 --> (C * C2) / X
   NewC = ConstantFoldBinaryOpOperands(Instruction::FMul, C, C2, DL);
 } else if (match(I.getOperand(0), m_FDiv(m_Value(X), m_Constant(C2)))) {
