@@ -515,7 +515,20 @@ bool AArch64AsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,
 
 void AArch64AsmBackend::relaxInstruction(MCInst &Inst,
                                          const MCSubtargetInfo &STI) const {
-  llvm_unreachable("AArch64AsmBackend::relaxInstruction() unimplemented");
+  unsigned RelaxedOp = getRelaxedOpcode(Inst.getOpcode(), STI);
+
+  // Return a diagnostic if we get here w/ a bogus instruction.
+  if (RelaxedOp == Inst.getOpcode()) {
+    SmallString<256> Tmp;
+    raw_svector_ostream OS(Tmp);
+    Inst.dump_pretty(OS);
+    OS << "\n";
+    report_fatal_error("unexpected instruction to relax: " + OS.str());
+  }
+
+  // The rest of instructions we're relaxing have the same operands.
+  // We just need to update to the proper opcode.
+  Inst.setOpcode(RelaxedOp);
 }
 
 bool AArch64AsmBackend::writeNopData(raw_ostream &OS, uint64_t Count,
