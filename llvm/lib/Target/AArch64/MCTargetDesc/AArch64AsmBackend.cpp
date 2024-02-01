@@ -486,11 +486,31 @@ bool AArch64AsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,
                                              uint64_t Value,
                                              const MCRelaxableFragment *DF,
                                              const MCAsmLayout &Layout) const {
-  // FIXME:  This isn't correct for AArch64. Just moving the "generic" logic
-  // into the targets for now.
-  //
-  // Relax if the value is too big for a (signed) i8.
-  return int64_t(Value) != int64_t(int8_t(Value));
+  int64_t SignedValue = static_cast<int64_t>(Value);
+  switch (Fixup.getTargetKind()) {
+  default:
+    llvm_unreachable("Unknown fixup kind!");
+  case AArch64::fixup_aarch64_pcrel_adr_imm21:
+  case AArch64::fixup_aarch64_pcrel_adrp_imm21:
+    // Relax if the value is too big for a (signed) i21.
+    return !isInt<21>(SignedValue - 8);
+  case AArch64::fixup_aarch64_ldr_pcrel_imm19:
+  case AArch64::fixup_aarch64_pcrel_branch19:
+    // Relax if the value is too big for a (signed) i19.
+    return !isInt<19>(SignedValue - 8);
+  case AArch64::fixup_aarch64_add_imm12:
+  case AArch64::fixup_aarch64_ldst_imm12_scale1:
+  case AArch64::fixup_aarch64_ldst_imm12_scale2:
+  case AArch64::fixup_aarch64_ldst_imm12_scale4:
+  case AArch64::fixup_aarch64_ldst_imm12_scale8:
+  case AArch64::fixup_aarch64_ldst_imm12_scale16:
+    // Relax if the value is too big for an unsigned i12.
+    return !isUInt<12>(Value);
+  case AArch64::fixup_aarch64_movw:
+    // Relax if the value is too big for a (signed) i16.
+    return !isInt<16>(SignedValue);
+  }
+  return false;
 }
 
 void AArch64AsmBackend::relaxInstruction(MCInst &Inst,
