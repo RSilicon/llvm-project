@@ -257,6 +257,27 @@ define void @test_i1_uge(ptr%A2) {
   ret void
 }
 
+; (or (seteq X, 0), (seteq X, -1)) --> (setult (add X, 1), 2)
+; Don't combine with i1 - out of range constant
+define void @test_i1_ult(ptr%A2) {
+; CHECK-LABEL: test_i1_ult:
+; CHECK:       # %bb.0:
+; CHECK-NEXT:    movzbl (%rdi), %eax
+; CHECK-NEXT:    movq %rax, %rcx
+; CHECK-NEXT:    xorq $1, %rcx
+; CHECK-NEXT:    negq %rcx
+; CHECK-NEXT:    cmpq $1, %rax
+; CHECK-NEXT:    sete (%rdi,%rcx)
+; CHECK-NEXT:    retq
+  %L5 = load i1, ptr %A2
+  %C3 = icmp eq i1 %L5, true
+  %C8 = icmp eq i1 %L5, false
+  %C9 = icmp ult i1 %C3, %C8
+  %G3 = getelementptr i1, ptr %A2, i1 %C9
+  store i1 %C3, ptr %G3
+  ret void
+}
+
 ; This should not get folded to 0.
 
 define i64 @PR40657(i8 %var2, i8 %var9) {
