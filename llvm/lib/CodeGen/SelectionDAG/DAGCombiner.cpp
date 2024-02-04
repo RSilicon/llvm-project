@@ -11515,10 +11515,19 @@ static SDValue foldVSelectToSignBitSplatMask(SDNode *N, SelectionDAG &DAG) {
     SDValue Not = DAG.getNOT(DL, Sra, VT);
     return DAG.getNode(ISD::AND, DL, VT, Not, N2);
   }
+  // If the target has a bitwise 'or not' instruction, apply the new pattern.
 
-  // TODO: There's another pattern in this family, but it may require
+    // TODO: There's another pattern in this family, but it may require
   //       implementing hasOrNot() to check for profitability:
   //       (Cond0 s> -1) ? -1 : N2 --> ~(Cond0 s>> BW-1) | N2
+  const TargetLowering &TLI = DAG.getTargetLoweringInfo();
+  if (isAllOnesOrAllOnesSplat(N1) && TLI.hasOrNot(N2)) {
+    SDLoc DL(N);
+    SDValue ShiftAmt = DAG.getConstant(VT.getScalarSizeInBits() - 1, DL, VT);
+    SDValue Sra = DAG.getNode(ISD::SRA, DL, VT, Cond0, ShiftAmt);
+    SDValue Not = DAG.getNOT(DL, Sra, VT);
+    return DAG.getNode(ISD::OR, DL, VT, Not, N2);
+  }
 
   return SDValue();
 }

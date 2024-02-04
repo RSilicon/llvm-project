@@ -751,6 +751,31 @@ public:
     return hasAndNotCompare(X);
   }
 
+    /// Return true if the target should transform:
+  /// (X & Y) == Y ---> (~X & Y) == 0
+  /// (X & Y) != Y ---> (~X & Y) != 0
+  ///
+  /// This may be profitable if the target has a bitwise and-not operation that
+  /// sets comparison flags. A target may want to limit the transformation based
+  /// on the type of Y or if Y is a constant.
+  ///
+  /// Note that the transform will not occur if Y is known to be a power-of-2
+  /// because a mask and compare of a single bit can be handled by inverting the
+  /// predicate, for example:
+  /// (X | 8) == 8 ---> (X | 8) != 0
+  virtual bool hasAndOrCompare(SDValue Y) const {
+    return false;
+  }
+
+  /// Return true if the target has a bitwise and-not operation:
+  /// X = ~A | B
+  /// This can be used to simplify select or other instructions.
+  virtual bool hasAndNot(SDValue X) const {
+    // If the target has the more complex version of this operation, assume that
+    // it has this operation too.
+    return hasAndNotCompare(X);
+  }
+
   /// Return true if the target has a bit-test instruction:
   ///   (X & (1 << Y)) ==/!= 0
   /// This knowledge can be used to prevent breaking the pattern,
