@@ -251,7 +251,7 @@ define void @test_i1_uge(ptr%A2) {
   %L5 = load i1, ptr %A2
   %C3 = icmp ne i1 %L5, true
   %C8 = icmp eq i1 %L5, false
-  %C9 = icmp ugt i1 %C3, %C8
+  %C9 = icmp ne i1 %C3, %C8
   %G3 = getelementptr i1, ptr %A2, i1 %C9
   store i1 %C3, ptr %G3
   ret void
@@ -268,7 +268,7 @@ define void @test_i1_ult(ptr%A2) {
   %L5 = load i1, ptr %A2
   %C3 = icmp eq i1 %L5, true
   %C8 = icmp ne i1 %L5, false
-  %C9 = icmp ule i1 %C3, %C8
+  %C9 = icmp eq i1 %C3, %C8
   %G3 = getelementptr i1, ptr %A2, i1 %C9
   store i1 %C3, ptr %G3
   ret void
