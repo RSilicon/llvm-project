@@ -263,14 +263,12 @@ define void @test_i1_ult(ptr%A2) {
 ; CHECK-LABEL: test_i1_ult:
 ; CHECK:       # %bb.0:
 ; CHECK-NEXT:    movzbl (%rdi), %eax
-; CHECK-NEXT:    movq %rax, %rcx
-; CHECK-NEXT:    xorq $1, %rcx
-; CHECK-NEXT:    negq %rcx
-; CHECK-NEXT:    cmpq $1, %rax
-; CHECK-NEXT:    sete (%rdi,%rcx)
+; CHECK-NEXT:    notb %al
+; CHECK-NEXT:    andb $1, %al
+; CHECK-NEXT:    movb %al, (%rdi)
 ; CHECK-NEXT:    retq
   %L5 = load i1, ptr %A2
-  %C3 = icmp eq i1 %L5, true
+  %C3 = icmp ne i1 %L5, true
   %C8 = icmp eq i1 %L5, false
   %C9 = icmp ult i1 %C3, %C8
   %G3 = getelementptr i1, ptr %A2, i1 %C9
