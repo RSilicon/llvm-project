@@ -1266,7 +1266,8 @@ static Value *takeLog2(IRBuilderBase &Builder, Value *Op, unsigned Depth,
     return Fn();
   };
 
-  // FIXME: assert that Op1 isn't/doesn't contain undef.
+  if (llvm::isa<UndefValue>(Op)|| llvm::isa<UndefValue>(SI->getOperand(0)))
+      return nullptr;
 
   // log2(2^C) -> C
   if (match(Op, m_Power2()))
@@ -1299,18 +1300,24 @@ static Value *takeLog2(IRBuilderBase &Builder, Value *Op, unsigned Depth,
   }
 
   // log2(Cond ? X : Y) -> Cond ? log2(X) : log2(Y)
-  // FIXME: missed optimization: if one of the hands of select is/contains
-  //        undef, just directly pick the other one.
   // FIXME: can both hands contain undef?
   // FIXME: Require one use?
-  if (SelectInst *SI = dyn_cast<SelectInst>(Op))
-    if (Value *LogX = takeLog2(Builder, SI->getOperand(1), Depth,
-                               AssumeNonZero, DoFold))
-      if (Value *LogY = takeLog2(Builder, SI->getOperand(2), Depth,
-                                 AssumeNonZero, DoFold))
-        return IfFold([&]() {
-          return Builder.CreateSelect(SI->getOperand(0), LogX, LogY);
-        });
+  if (SelectInst *SI = dyn_cast<SelectInst>(Op)) {
+    Value *Op1 = SI->getOperand(1);
+    Value *Op2 = SI->getOperand(2);
+    if (llvm::isa<UndefValue>(Op1)) {
+      // If Op1 is undef, use Op2 for the log2 operation
+      return takeLog2(Builder, Op2, Depth, AssumeNonZero, DoFold);
+    } else if (llvm::isa<UndefValue>(Op2)) {
+      // If Op2 is undef, use Op1 for the log2 operation
+      return takeLog2(Builder, Op1, Depth, AssumeNonZero, DoFold);
+    }
+    // If neither is undef, proceed as before
+    if (Value *LogX = takeLog2(Builder, Op1, Depth, AssumeNonZero, DoFold))
+      if (Value *LogY = takeLog2(Builder, Op2, Depth, AssumeNonZero, DoFold))
+        return IfFold(
+            &{ return Builder.CreateSelect(SI->getOperand(0), LogX, LogY); });
+  }
 
   // log2(umin(X, Y)) -> umin(log2(X), log2(Y))
   // log2(umax(X, Y)) -> umax(log2(X), log2(Y))
