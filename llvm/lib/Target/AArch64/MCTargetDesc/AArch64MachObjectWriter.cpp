@@ -205,15 +205,8 @@ void AArch64MachObjectWriter::recordRelocation(
     // FIXME: Should this always be extern?
     // SymbolNum of 0 indicates the absolute section.
     Type = MachO::ARM64_RELOC_UNSIGNED;
-
-    if (IsPCRel) {
-      Asm.getContext().reportError(Fixup.getLoc(),
-                                   "PC relative absolute relocation!");
-      return;
-
-      // FIXME: x86_64 sets the type to a branch reloc here. Should we do
-      // something similar?
-    }
+    if (IsPCRel)
+      Type = MachO::ARM64_RELOC_BRANCH26;
   } else if (Target.getSymB()) { // A - B + constant
     const MCSymbol *A = &Target.getSymA()->getSymbol();
     const MCSymbol *A_Base = Asm.getAtom(*A);
