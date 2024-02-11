@@ -36,8 +36,11 @@ clang::getComparisonCategoryForBuiltinCmp(QualType T) {
   // Note: this assumes neither operand is a null pointer constant.
   if (T->isObjectPointerType())
     return CCT::StrongOrdering;
+  
+  // Note: this assumes neither operand is a null pointer constant.
+  if (T->isObjCObjectPointerType())
+    return CCT::StrongOrdering;
 
-  // TODO: Extend support for operator<=> to ObjC types.
   return std::nullopt;
 }
 
