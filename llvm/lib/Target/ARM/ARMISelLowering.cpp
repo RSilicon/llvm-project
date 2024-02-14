@@ -8235,7 +8235,7 @@ SDValue ARMTargetLowering::ReconstructShuffle(SDValue Op,
       SmallestEltTy = SrcEltTy;
   }
   unsigned ResMultiplier =
-      VT.getScalarSizeInBits() / SmallestEltTy.getSizeInBits();
+      VT.getScalarSizeInBits() / SmallestEltTy.getFixedSizeInBits();
   NumElts = VT.getSizeInBits() / SmallestEltTy.getSizeInBits();
   EVT ShuffleVT = EVT::getVectorVT(*DAG.getContext(), SmallestEltTy, NumElts);
 
