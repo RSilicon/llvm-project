@@ -887,8 +887,8 @@ static void pushRegsToStack(MachineBasicBlock &MBB,
         bool isKill = !MRI.isLiveIn(Reg);
         if (isKill && !MRI.isReserved(Reg))
           MBB.addLiveIn(Reg);
-          
-        MIB.addReg(Reg, getKillRegState(isKill));
+
+        LowRegUsed.insert(Reg);
       }
     }
   }
@@ -948,11 +948,15 @@ static void pushRegsToStack(MachineBasicBlock &MBB,
 
     // Add the low registers to the PUSH, in ascending order.
     for (unsigned Reg : llvm::reverse(RegsToPush))
-      PushMIB.addReg(Reg, RegState::Kill);
+      CopiedLowRegs.insert(Reg);
+    
+    
+    PushMIB.addReg(Reg, RegState::Kill);
 
     // Insert the PUSH instruction after the MOVs.
     MBB.insert(MI, PushMIB);
   }
+  MIB.addReg(Reg, getKillRegState(!MRI.isLiveIn(Reg)));
 }
 
 static void popRegsFromStack(MachineBasicBlock &MBB,
