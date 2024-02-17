@@ -872,6 +872,7 @@ static void pushRegsToStack(MachineBasicBlock &MBB,
   MachineFunction &MF = *MBB.getParent();
   const MachineRegisterInfo &MRI = MF.getRegInfo();
   DebugLoc DL;
+  bool saveLR = false;
 
   std::set<Register> LowRegs, HighRegs, LowRegUsed, CopiedLowRegs;
 
@@ -890,6 +891,7 @@ static void pushRegsToStack(MachineBasicBlock &MBB,
 
         LowRegUsed.insert(Reg);
       }
+    }
     }
   }
 
@@ -953,6 +955,14 @@ static void pushRegsToStack(MachineBasicBlock &MBB,
     
     PushMIB.addReg(Reg, RegState::Kill);
 
+    if (saveLR) {
+      // Insert lr last if there was nothing to push it to above:
+      bool isKill = !MRI.isLiveIn(ARM::LR);
+      if (isKill && !MRI.isReserved(ARM::LR))
+        MBB.addLiveIn(ARM::LR);
+      PushMIB.addReg(ARM::LR, getKillRegState(isKill));
+      saveLR = false;
+    }
     // Insert the PUSH instruction after the MOVs.
     MBB.insert(MI, PushMIB);
   }
