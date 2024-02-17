@@ -873,23 +873,24 @@ static void pushRegsToStack(MachineBasicBlock &MBB,
   const MachineRegisterInfo &MRI = MF.getRegInfo();
   DebugLoc DL;
 
-  std::set<Register> LowRegs, HighRegs;
+  std::set<Register> LowRegs, HighRegs, LowRegUsed, CopiedLowRegs;
+
   splitLowAndHighRegs(RegsToSave, LowRegs, HighRegs);
 
+  MachineInstrBuilder MIB;
   // Push low regs first
   if (!LowRegs.empty()) {
-    MachineInstrBuilder MIB =
-        BuildMI(MBB, MI, DL, TII.get(ARM::tPUSH)).add(predOps(ARMCC::AL));
+    MIB = BuildMI(MBB, MI, DL, TII.get(ARM::tPUSH)).add(predOps(ARMCC::AL))
+        .setMIFlags(MachineInstr::FrameSetup);
     for (unsigned Reg : OrderedLowRegs) {
       if (LowRegs.count(Reg)) {
         bool isKill = !MRI.isLiveIn(Reg);
         if (isKill && !MRI.isReserved(Reg))
           MBB.addLiveIn(Reg);
-
+          
         MIB.addReg(Reg, getKillRegState(isKill));
       }
     }
-    MIB.setMIFlags(MachineInstr::FrameSetup);
   }
 
   // Now push the high registers
