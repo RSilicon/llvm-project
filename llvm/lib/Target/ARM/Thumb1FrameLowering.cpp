@@ -872,14 +872,22 @@ static void pushRegsToStack(MachineBasicBlock &MBB,
   MachineFunction &MF = *MBB.getParent();
   const MachineRegisterInfo &MRI = MF.getRegInfo();
   DebugLoc DL;
+  bool saveLR = false;
 
   std::set<Register> LowRegs, HighRegs;
   splitLowAndHighRegs(RegsToSave, LowRegs, HighRegs);
 
   // Push low regs first
   if (!LowRegs.empty()) {
+
+    if (LowRegs.size() == 1 && LowRegs.count(ARM::LR) && !HighRegs.empty())
+    {
+      saveLR = true;
+    }
+    else {
     MachineInstrBuilder MIB =
-        BuildMI(MBB, MI, DL, TII.get(ARM::tPUSH)).add(predOps(ARMCC::AL));
+        BuildMI(MBB, MI, DL, TII.get(ARM::tPUSH)).add(predOps(ARMCC::AL))
+        .setMIFlags(MachineInstr::FrameSetup);
     for (unsigned Reg : OrderedLowRegs) {
       if (LowRegs.count(Reg)) {
         bool isKill = !MRI.isLiveIn(Reg);
@@ -889,7 +897,7 @@ static void pushRegsToStack(MachineBasicBlock &MBB,
         MIB.addReg(Reg, getKillRegState(isKill));
       }
     }
-    MIB.setMIFlags(MachineInstr::FrameSetup);
+    }
   }
 
   // Now push the high registers
@@ -949,6 +957,14 @@ static void pushRegsToStack(MachineBasicBlock &MBB,
     for (unsigned Reg : llvm::reverse(RegsToPush))
       PushMIB.addReg(Reg, RegState::Kill);
 
+    if (saveLR) {
+      // Insert lr last if there was nothing to push it to above:
+      bool isKill = !MRI.isLiveIn(ARM::LR);
+      if (isKill && !MRI.isReserved(ARM::LR))
+        MBB.addLiveIn(ARM::LR);
+      PushMIB.addReg(ARM::LR, getKillRegState(isKill));
+      saveLR = false;
+    }
     // Insert the PUSH instruction after the MOVs.
     MBB.insert(MI, PushMIB);
   }
