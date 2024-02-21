@@ -3056,11 +3056,10 @@ bool X86DAGToDAGISel::selectLEAAddr(SDValue N,
       case X86ISD::SMUL:
       case X86ISD::UMUL:
       /* TODO: These opcodes can be added safely, but we may want to justify
-               their inclusion for different reasons (better for reg-alloc).
+               their inclusion for different reasons (better for reg-alloc). */
       case X86ISD::OR:
       case X86ISD::XOR:
       case X86ISD::AND:
-      */
         // Value 1 is the flag output of the node - verify it's not dead.
         return !SDValue(V.getNode(), 1).use_empty();
       default:
