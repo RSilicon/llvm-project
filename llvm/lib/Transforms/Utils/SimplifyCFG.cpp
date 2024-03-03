@@ -410,16 +410,27 @@ static InstructionCost computeSpeculationCost(const User *I,
 /// Budget, false is returned and Cost is undefined.
 static bool dominatesMergePoint(Value *V, BasicBlock *BB,
                                 SmallPtrSetImpl<Instruction *> &AggressiveInsts,
-                                InstructionCost &Cost,
-                                InstructionCost Budget,
+                                SmallPtrSetImpl<Instruction *> &VisitedInsts,
+                                InstructionCost &Cost, InstructionCost Budget,
                                 const TargetTransformInfo &TTI,
                                 unsigned Depth = 0) {
   // It is possible to hit a zero-cost cycle (phi/gep instructions for example),
   // so limit the recursion depth.
-  // TODO: While this recursion limit does prevent pathological behavior, it
-  // would be better to track visited instructions to avoid cycles.
+
+  // Before recursing, check if the operand has been visited.
   if (Depth == MaxSpeculationDepth)
     return false;
+
+  // Check for cycles
+  for (Use &Op : I->operands()) {
+    Instruction *OpI = dyn_cast<Instruction>(Op);
+    if (!OpI || VisitedInsts.count(OpI))
+      continue;
+    VisitedInsts.insert(OpI);
+    if (!dominatesMergePoint(Op, BB, AggressiveInsts, VisitedInsts, Cost,
+                             Budget, TTI, Depth + 1))
+      return false;
+  }
 
   Instruction *I = dyn_cast<Instruction>(V);
   if (!I) {
@@ -467,7 +478,7 @@ static bool dominatesMergePoint(Value *V, BasicBlock *BB,
   // Okay, we can only really hoist these out if their operands do
   // not take us over the cost threshold.
   for (Use &Op : I->operands())
-    if (!dominatesMergePoint(Op, BB, AggressiveInsts, Cost, Budget, TTI,
+    if (!dominatesMergePoint(Op, BB, AggressiveInsts, VisitedInsts, Cost, Budget, TTI,
                              Depth + 1))
       return false;
   // Okay, it's safe to do this!  Remember this instruction.
@@ -3554,6 +3565,8 @@ static bool FoldTwoEntryPHINode(PHINode *PN, const TargetTransformInfo &TTI,
   // instructions.  While we are at it, keep track of the instructions
   // that need to be moved to the dominating block.
   SmallPtrSet<Instruction *, 4> AggressiveInsts;
+  SmallPtrSet<Instruction *, 4> VisitedInsts1;
+  SmallPtrSet<Instruction *, 4> VisitedInsts2;
   InstructionCost Cost = 0;
   InstructionCost Budget =
       TwoEntryPHINodeFoldingThreshold * TargetTransformInfo::TCC_Basic;
@@ -3569,9 +3582,9 @@ static bool FoldTwoEntryPHINode(PHINode *PN, const TargetTransformInfo &TTI,
     }
 
     if (!dominatesMergePoint(PN->getIncomingValue(0), BB, AggressiveInsts,
-                             Cost, Budget, TTI) ||
+                             VisitedInsts1, Cost, Budget, TTI) ||
         !dominatesMergePoint(PN->getIncomingValue(1), BB, AggressiveInsts,
-                             Cost, Budget, TTI))
+                             VisitedInsts2, Cost, Budget, TTI))
       return Changed;
   }
 
