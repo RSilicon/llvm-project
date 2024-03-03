@@ -1446,11 +1446,12 @@ void TargetPassConfig::addOptimizedRegAlloc() {
 
   // Edge splitting is smarter with machine loop info.
   addPass(&MachineLoopInfoID);
-  addPass(&PHIEliminationID);
 
   // Eventually, we want to run LiveIntervals before PHI elimination.
   if (EarlyLiveIntervals)
     addPass(&LiveIntervalsID);
+  
+  addPass(&PHIEliminationID);
 
   addPass(&TwoAddressInstructionPassID);
   addPass(&RegisterCoalescerID);
@@ -1478,7 +1479,7 @@ void TargetPassConfig::addOptimizedRegAlloc() {
     // Run post-ra machine LICM to hoist reloads / remats.
     //
     // FIXME: can this move into MachineLateOptimization?
-    addPass(&MachineLICMID);
+    
   }
 }
 
@@ -1491,6 +1492,8 @@ void TargetPassConfig::addMachineLateOptimization() {
   // Cleanup of redundant immediate/address loads.
   addPass(&MachineLateInstrsCleanupID);
 
+  addPass(&MachineLICMID);
+
   // Branch folding must be run after regalloc and prolog/epilog insertion.
   addPass(&BranchFolderPassID);
 
@@ -1500,6 +1503,8 @@ void TargetPassConfig::addMachineLateOptimization() {
   // In addition it can also make CFG irreducible. Thus we disable it.
   if (!TM->requiresStructuredCFG())
     addPass(&TailDuplicateID);
+  
+  addPass(&MachineLICMID);
 
   // Copy propagation.
   addPass(&MachineCopyPropagationID);
