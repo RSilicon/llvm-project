@@ -2591,11 +2591,19 @@ bool llvm::tryFoldSPUpdateIntoPushPop(const ARMSubtarget &Subtarget,
 
     // However, we can only pop an extra register if it's not live. For
     // registers live within the function we might clobber a return value
-    // register; the other way a register can be live here is if it's
-    // callee-saved.
-    if (isCalleeSavedRegister(CurReg, CSRegs) ||
-        MI->getParent()->computeRegisterLiveness(TRI, CurReg, MI) !=
-        MachineBasicBlock::LQR_Dead) {
+    // register.
+    LiveRegUnits UsedRegs(*TRI);
+    MachineBasicBlock *MBB = MI->getParent();
+    UsedRegs.addLiveOuts(*MBB);
+
+    auto InstUpToBefore = MBB->end();
+
+    while (InstUpToBefore != MI)
+      // The pre-decrement is on purpose here.
+      // We want to have the liveness right before Before.
+      UsedRegs.stepBackward(*--InstUpToBefore);
+
+    if (!UsedRegs.available(CurReg)) {
       // VFP pops don't allow holes in the register list, so any skip is fatal
       // for our transformation. GPR pops do, so we should just keep looking.
       if (IsVFPPushPop)
@@ -2605,8 +2613,8 @@ bool llvm::tryFoldSPUpdateIntoPushPop(const ARMSubtarget &Subtarget,
     }
 
     // Mark the unimportant registers as <def,dead> in the POP.
-    RegList.push_back(MachineOperand::CreateReg(CurReg, true, false, false,
-                                                true));
+    RegList.push_back(
+        MachineOperand::CreateReg(CurReg, true, false, false, true));
     --RegsNeeded;
   }
 
