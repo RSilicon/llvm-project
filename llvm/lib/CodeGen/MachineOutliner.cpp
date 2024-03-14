@@ -326,6 +326,28 @@ struct InstructionMapper {
       // which may be outlinable. Check if each instruction is known to be safe.
       for (; It != OutlinableRangeEnd; ++It) {
         // Keep track of where this instruction is in the module.
+
+        // FIXME: Currently the vectors do not take bundles into account,
+        // causing it to outline bundled instructions to different functions in
+        // some cases. Until a proper fix is found that ensures that the
+        // outlined function candidate is only legal if all bundled instructions
+        // will be outlined if any of them are outlined, which is information
+        // the conversion to an unsigned vec removes, it is best to consider all
+        // bundled instructions unsafe to outline.
+        if (It->isBundle()) {
+          do {
+            mapToIllegalUnsigned(It, CanOutlineWithPrevInstr, UnsignedVecForMBB,
+                                 InstrListForMBB);
+            ++It;
+          } while (It->isBundledWithSucc());
+
+          // Final instruction in bundle
+          mapToIllegalUnsigned(It, CanOutlineWithPrevInstr, UnsignedVecForMBB,
+                               InstrListForMBB);
+
+          continue;
+        }
+
         switch (TII.getOutliningType(It, Flags)) {
         case InstrType::Illegal:
           mapToIllegalUnsigned(It, CanOutlineWithPrevInstr, UnsignedVecForMBB,
