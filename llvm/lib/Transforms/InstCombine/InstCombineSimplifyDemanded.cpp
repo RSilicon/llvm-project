@@ -510,9 +510,7 @@ Value *InstCombinerImpl::SimplifyDemandedUseBits(Value *V, APInt DemandedMask,
       }
 
       // add iN (sext i1 X), (sext i1 Y) --> sext (X | Y) to iN
-      // TODO: Relax the one-use checks because we are removing an instruction?
-      if (match(I, m_Add(m_OneUse(m_SExt(m_Value(X))),
-                         m_OneUse(m_SExt(m_Value(Y))))) &&
+      if (match(I, m_Add(m_SExt(m_Value(X)), m_SExt(m_Value(Y)))) &&
           X->getType()->isIntOrIntVectorTy(1) && X->getType() == Y->getType()) {
         // Truth table for inputs and output signbits:
         //       X:0 | X:1
