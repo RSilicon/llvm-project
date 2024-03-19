@@ -40,8 +40,15 @@ Align GISelKnownBits::computeKnownAlignment(Register R, unsigned Depth) {
   case TargetOpcode::COPY:
     return computeKnownAlignment(MI->getOperand(1).getReg(), Depth);
   case TargetOpcode::G_ASSERT_ALIGN: {
-    // TODO: Min with source
-    return Align(MI->getOperand(2).getImm());
+    // Get the asserted alignment.
+    Align AssertedAlign(MI->getOperand(2).getImm());
+
+    // Compute the known alignment of the source.
+    Align SourceAlign =
+        computeKnownAlignment(MI->getOperand(1).getReg(), Depth);
+
+    // Return the maximum of the source alignment and the asserted alignment.
+    return std::max(AssertedAlign, SourceAlign);
   }
   case TargetOpcode::G_FRAME_INDEX: {
     int FrameIdx = MI->getOperand(1).getIndex();
@@ -476,9 +483,13 @@ void GISelKnownBits::computeKnownBitsImpl(Register R, KnownBits &Known,
     break;
   }
   case TargetOpcode::G_ASSERT_ALIGN: {
+    // Get the maximum alignment between what is computed and what is asserted.
     int64_t LogOfAlign = Log2_64(MI.getOperand(2).getImm());
+    Align SourceAlign = computeKnownAlignment(MI.getOperand(1).getReg(), Depth);
+    int64_t LogOfSourceAlign = Log2(SourceAlign);
 
-    // TODO: Should use maximum with source
+    LogOfAlign = std::max(LogOfAlign, LogOfSourceAlign);
+
     // If a node is guaranteed to be aligned, set low zero bits accordingly as
     // well as clearing one bits.
     Known.Zero.setLowBits(LogOfAlign);
