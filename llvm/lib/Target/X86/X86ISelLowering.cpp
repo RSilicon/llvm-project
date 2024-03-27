@@ -51534,9 +51534,8 @@ static SDValue combineTruncatedArithmetic(SDNode *N, SelectionDAG &DAG,
   if (!Src.hasOneUse())
     return SDValue();
 
-  // Only support vector truncation for now.
-  // TODO: i64 scalar math would benefit as well.
-  if (!VT.isVector())
+  // Only support vector truncation and i64 scalar math for now.
+  if (!VT.isVector() && VT != MVT::i64)
     return SDValue();
 
   // In most cases its only worth pre-truncating if we're only facing the cost
