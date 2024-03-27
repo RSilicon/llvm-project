@@ -46,13 +46,16 @@ define %S @negate(ptr nocapture readonly %this) {
 ; CHECK-NEXT:    subq (%rsi), %rdx
 ; CHECK-NEXT:    movl $0, %edi
 ; CHECK-NEXT:    sbbq 8(%rsi), %rdi
-; CHECK-NEXT:    movl $0, %r8d
-; CHECK-NEXT:    sbbq 16(%rsi), %r8
-; CHECK-NEXT:    sbbq 24(%rsi), %rcx
+; CHECK-NEXT:    sbbq 16(%rsi), %rcx
+; CHECK-NEXT:    setae %r8b
+; CHECK-NEXT:    movzbl %r8b, %r8d
+; CHECK-NEXT:    movq 24(%rsi), %rsi
+; CHECK-NEXT:    notq %rsi
+; CHECK-NEXT:    addq %r8, %rsi
 ; CHECK-NEXT:    movq %rdx, (%rax)
 ; CHECK-NEXT:    movq %rdi, 8(%rax)
-; CHECK-NEXT:    movq %r8, 16(%rax)
-; CHECK-NEXT:    movq %rcx, 24(%rax)
+; CHECK-NEXT:    movq %rcx, 16(%rax)
+; CHECK-NEXT:    movq %rsi, 24(%rax)
 ; CHECK-NEXT:    retq
 entry:
   %0 = load i64, ptr %this, align 8
