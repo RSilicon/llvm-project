@@ -333,12 +333,6 @@ namespace {
     bool shouldAvoidImmediateInstFormsForSize(SDNode *N) const {
       uint32_t UseCount = 0;
 
-      // Do not want to hoist if we're not optimizing for size.
-      // TODO: We'd like to remove this restriction.
-      // See the comment in X86InstrInfo.td for more info.
-      if (!CurDAG->shouldOptForSize())
-        return false;
-
       // Walk all the users of the immediate.
       for (const SDNode *User : N->uses()) {
         if (UseCount >= 2)
