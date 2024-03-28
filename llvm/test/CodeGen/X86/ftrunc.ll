@@ -273,6 +273,53 @@ define float @trunc_signed_f32_no_fast_math(float %x) {
   ret float %r
 }
 
+define float @trunc_unsigned_f32_no_fast_math(float %x) {
+; SSE-LABEL: trunc_unsigned_f32_no_fast_math:
+; SSE:       # %bb.0:
+; SSE-NEXT:    cvttss2si %xmm0, %rax
+; SSE-NEXT:    movl %eax, %eax
+; SSE-NEXT:    xorps %xmm0, %xmm0
+; SSE-NEXT:    cvtsi2ss %rax, %xmm0
+; SSE-NEXT:    retq
+;
+; X64-AVX1-LABEL: trunc_unsigned_f32_no_fast_math:
+; X64-AVX1:       # %bb.0:
+; X64-AVX1-NEXT:    vcvttss2si %xmm0, %rax
+; X64-AVX1-NEXT:    movl %eax, %eax
+; X64-AVX1-NEXT:    vcvtsi2ss %rax, %xmm1, %xmm0
+; X64-AVX1-NEXT:    retq
+;
+; X86-AVX1-LABEL: trunc_unsigned_f32_no_fast_math:
+; X86-AVX1:       # %bb.0:
+; X86-AVX1-NEXT:    pushl %eax
+; X86-AVX1-NEXT:    .cfi_def_cfa_offset 8
+; X86-AVX1-NEXT:    vmovss {{.*#+}} xmm0 = mem[0],zero,zero,zero
+; X86-AVX1-NEXT:    vcvttss2si %xmm0, %eax
+; X86-AVX1-NEXT:    movl %eax, %ecx
+; X86-AVX1-NEXT:    sarl $31, %ecx
+; X86-AVX1-NEXT:    vsubss {{\.?LCPI[0-9]+_[0-9]+}}, %xmm0, %xmm0
+; X86-AVX1-NEXT:    vcvttss2si %xmm0, %edx
+; X86-AVX1-NEXT:    andl %ecx, %edx
+; X86-AVX1-NEXT:    orl %eax, %edx
+; X86-AVX1-NEXT:    vmovd %edx, %xmm0
+; X86-AVX1-NEXT:    vpor {{\.?LCPI[0-9]+_[0-9]+}}, %xmm0, %xmm0
+; X86-AVX1-NEXT:    vsubsd {{\.?LCPI[0-9]+_[0-9]+}}, %xmm0, %xmm0
+; X86-AVX1-NEXT:    vcvtsd2ss %xmm0, %xmm0, %xmm0
+; X86-AVX1-NEXT:    vmovss %xmm0, (%esp)
+; X86-AVX1-NEXT:    flds (%esp)
+; X86-AVX1-NEXT:    popl %eax
+; X86-AVX1-NEXT:    .cfi_def_cfa_offset 4
+; X86-AVX1-NEXT:    retl
+; AVX1-LABEL: trunc_signed_f32_no_fast_math:
+; AVX1:       # %bb.0:
+; AVX1-NEXT:    vcvttss2si %xmm0, %eax
+; AVX1-NEXT:    vcvtsi2ss %eax, %xmm1, %xmm0
+; AVX1-NEXT:    retq
+  %i = fptoui float %x to i32
+  %r = uitofp i32 %i to float
+  ret float %r
+}
+
 ; Without -0.0, it is ok to use roundss if it is available.
 
 define float @trunc_signed_f32_nsz(float %x) #0 {
@@ -338,109 +385,6 @@ define double @trunc_signed32_f64_no_fast_math(double %x) {
 ; X86-AVX1-NEXT:    .cfi_def_cfa %esp, 4
 ; X86-AVX1-NEXT:    retl
   %i = fptosi double %x to i32
-  %r = sitofp i32 %i to double
-  ret double %r
-}
-
-define double @trunc_signed32_f64_nsz(double %x) #0 {
-; SSE2-LABEL: trunc_signed32_f64_nsz:
-; SSE2:       # %bb.0:
-; SSE2-NEXT:    cvttpd2dq %xmm0, %xmm0
-; SSE2-NEXT:    cvtdq2pd %xmm0, %xmm0
-; SSE2-NEXT:    retq
-;
-; SSE41-LABEL: trunc_signed32_f64_nsz:
-; SSE41:       # %bb.0:
-; SSE41-NEXT:    roundsd $11, %xmm0, %xmm0
-; SSE41-NEXT:    retq
-;
-; X64-AVX1-LABEL: trunc_signed32_f64_nsz:
-; X64-AVX1:       # %bb.0:
-; X64-AVX1-NEXT:    vroundsd $11, %xmm0, %xmm0, %xmm0
-; X64-AVX1-NEXT:    retq
-;
-; X86-AVX1-LABEL: trunc_signed32_f64_nsz:
-; X86-AVX1:       # %bb.0:
-; X86-AVX1-NEXT:    pushl %ebp
-; X86-AVX1-NEXT:    movl %esp, %ebp
-; X86-AVX1-NEXT:    andl $-8, %esp
-; X86-AVX1-NEXT:    subl $8, %esp
-; X86-AVX1-NEXT:    vmovsd {{.*#+}} xmm0 = mem[0],zero
-; X86-AVX1-NEXT:    vroundsd $11, %xmm0, %xmm0, %xmm0
-; X86-AVX1-NEXT:    vmovsd %xmm0, (%esp)
-; X86-AVX1-NEXT:    fldl (%esp)
-; X86-AVX1-NEXT:    movl %ebp, %esp
-; X86-AVX1-NEXT:    popl %ebp
-; X86-AVX1-NEXT:    retl
-  %i = fptosi double %x to i32
-  %r = sitofp i32 %i to double
-  ret double %r
-}
-
-define double @trunc_f32_signed32_f64_no_fast_math(float %x) {
-; SSE-LABEL: trunc_f32_signed32_f64_no_fast_math:
-; SSE:       # %bb.0:
-; SSE-NEXT:    cvttps2dq %xmm0, %xmm0
-; SSE-NEXT:    cvtdq2pd %xmm0, %xmm0
-; SSE-NEXT:    retq
-;
-; X64-AVX1-LABEL: trunc_f32_signed32_f64_no_fast_math:
-; X64-AVX1:       # %bb.0:
-; X64-AVX1-NEXT:    vcvttps2dq %xmm0, %xmm0
-; X64-AVX1-NEXT:    vcvtdq2pd %xmm0, %xmm0
-; X64-AVX1-NEXT:    retq
-;
-; X86-AVX1-LABEL: trunc_f32_signed32_f64_no_fast_math:
-; X86-AVX1:       # %bb.0:
-; X86-AVX1-NEXT:    pushl %ebp
-; X86-AVX1-NEXT:    .cfi_def_cfa_offset 8
-; X86-AVX1-NEXT:    .cfi_offset %ebp, -8
-; X86-AVX1-NEXT:    movl %esp, %ebp
-; X86-AVX1-NEXT:    .cfi_def_cfa_register %ebp
-; X86-AVX1-NEXT:    andl $-8, %esp
-; X86-AVX1-NEXT:    subl $8, %esp
-; X86-AVX1-NEXT:    vmovss {{.*#+}} xmm0 = mem[0],zero,zero,zero
-; X86-AVX1-NEXT:    vcvttps2dq %xmm0, %xmm0
-; X86-AVX1-NEXT:    vcvtdq2pd %xmm0, %xmm0
-; X86-AVX1-NEXT:    vmovlps %xmm0, (%esp)
-; X86-AVX1-NEXT:    fldl (%esp)
-; X86-AVX1-NEXT:    movl %ebp, %esp
-; X86-AVX1-NEXT:    popl %ebp
-; X86-AVX1-NEXT:    .cfi_def_cfa %esp, 4
-; X86-AVX1-NEXT:    retl
-  %i = fptosi float %x to i32
-  %r = sitofp i32 %i to double
-  ret double %r
-}
-
-define double @trunc_f32_signed32_f64_nsz(float %x) #0 {
-; SSE-LABEL: trunc_f32_signed32_f64_nsz:
-; SSE:       # %bb.0:
-; SSE-NEXT:    cvttps2dq %xmm0, %xmm0
-; SSE-NEXT:    cvtdq2pd %xmm0, %xmm0
-; SSE-NEXT:    retq
-;
-; X64-AVX1-LABEL: trunc_f32_signed32_f64_nsz:
-; X64-AVX1:       # %bb.0:
-; X64-AVX1-NEXT:    vcvttps2dq %xmm0, %xmm0
-; X64-AVX1-NEXT:    vcvtdq2pd %xmm0, %xmm0
-; X64-AVX1-NEXT:    retq
-;
-; X86-AVX1-LABEL: trunc_f32_signed32_f64_nsz:
-; X86-AVX1:       # %bb.0:
-; X86-AVX1-NEXT:    pushl %ebp
-; X86-AVX1-NEXT:    movl %esp, %ebp
-; X86-AVX1-NEXT:    andl $-8, %esp
-; X86-AVX1-NEXT:    subl $8, %esp
-; X86-AVX1-NEXT:    vmovss {{.*#+}} xmm0 = mem[0],zero,zero,zero
-; X86-AVX1-NEXT:    vcvttps2dq %xmm0, %xmm0
-; X86-AVX1-NEXT:    vcvtdq2pd %xmm0, %xmm0
-; X86-AVX1-NEXT:    vmovlps %xmm0, (%esp)
-; X86-AVX1-NEXT:    fldl (%esp)
-; X86-AVX1-NEXT:    movl %ebp, %esp
-; X86-AVX1-NEXT:    popl %ebp
-; X86-AVX1-NEXT:    retl
-  %i = fptosi float %x to i32
   %r = sitofp i32 %i to double
   ret double %r
 }
@@ -770,11 +714,11 @@ define double @trunc_signed_f64_disable_via_intrinsic(double %x) #0 {
 ; X86-AVX1-NEXT:    vucomisd {{\.?LCPI[0-9]+_[0-9]+}}, %xmm0
 ; X86-AVX1-NEXT:    movl $-2147483648, %ecx # imm = 0x80000000
 ; X86-AVX1-NEXT:    movl $0, %edx
-; X86-AVX1-NEXT:    jb .LBB19_2
+; X86-AVX1-NEXT:    jb .LBB17_2
 ; X86-AVX1-NEXT:  # %bb.1:
 ; X86-AVX1-NEXT:    movl {{[0-9]+}}(%esp), %ecx
 ; X86-AVX1-NEXT:    movl (%esp), %edx
-; X86-AVX1-NEXT:  .LBB19_2:
+; X86-AVX1-NEXT:  .LBB17_2:
 ; X86-AVX1-NEXT:    vucomisd {{\.?LCPI[0-9]+_[0-9]+}}, %xmm0
 ; X86-AVX1-NEXT:    movl $-1, %esi
 ; X86-AVX1-NEXT:    cmovbel %edx, %esi
