@@ -165,7 +165,14 @@ void Float2IntPass::walkBackwards() {
       // Path terminated uncleanly.
       seen(I, badRange());
       break;
-
+    case Instruction::PHI: {
+      auto Phi = cast<PHINode>(I);
+      for (const Use &U : Phi->operands())
+      {
+        I = 
+        if U.get()
+      }
+    }
     case Instruction::UIToFP:
     case Instruction::SIToFP: {
       // Path terminated cleanly - use the type of the integer input to seed
