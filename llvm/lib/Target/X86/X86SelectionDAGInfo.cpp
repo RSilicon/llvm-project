@@ -133,6 +133,22 @@ SDValue X86SelectionDAGInfo::EmitTargetCodeForMemset(
 
   if (BytesLeft) {
     // Handle the last 1 - 7 bytes.
+    /// In case we optimize for size we use repmovsb even if it's less efficient
+    /// so we can save the loads/stores of the leftover.
+    if (DAG.getMachineFunction().getFunction().hasMinSize()) {
+      SDValue Glue;
+      Chain = DAG.getCopyToReg(Chain, dl, Use64BitRegs ? X86::RCX : X86::ECX,
+                               Count, Glue);
+      Glue = Chain.getValue(1);
+      Chain = DAG.getCopyToReg(Chain, dl, Use64BitRegs ? X86::RDI : X86::EDI,
+                               Dst, Glue);
+      Glue = Chain.getValue(1);
+
+      SDVTList Tys = DAG.getVTList(MVT::Other, MVT::Glue);
+      SDValue Ops[] = {Chain, DAG.getValueType(MVT::i8), InGlue};
+      return DAG.getNode(X86ISD::REP_STOS, dl, Tys, Ops);
+    }
+
     unsigned Offset = SizeVal - BytesLeft;
     EVT AddrVT = Dst.getValueType();
     EVT SizeVT = Size.getValueType();
