@@ -1797,10 +1797,8 @@ Instruction *InstCombinerImpl::foldICmpAndConstConst(ICmpInst &Cmp,
   Value *W;
   if (match(And->getOperand(0), m_OneUse(m_Trunc(m_Value(W)))) &&
       (Cmp.isEquality() || (!C1.isNegative() && !C2->isNegative()))) {
-    // TODO: Is this a good transform for vectors? Wider types may reduce
-    // throughput. Should this transform be limited (even for scalars) by using
-    // shouldChangeType()?
-    if (!Cmp.getType()->isVectorTy()) {
+    if (!Cmp.getType()->isVectorTy() &&
+        shouldChangeType(Cmp.getType(), W->getType())) {
       Type *WideType = W->getType();
       unsigned WideScalarBits = WideType->getScalarSizeInBits();
       Constant *ZextC1 = ConstantInt::get(WideType, C1.zext(WideScalarBits));
