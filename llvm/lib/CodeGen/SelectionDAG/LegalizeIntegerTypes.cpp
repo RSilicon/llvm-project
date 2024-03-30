@@ -3274,34 +3274,9 @@ void DAGTypeLegalizer::ExpandIntRes_ADDSUB(SDNode *N,
     return;
   }
 
-  // Do not generate ADDC/ADDE or SUBC/SUBE if the target does not support
-  // them.  TODO: Teach operation legalization how to expand unsupported
-  // ADDC/ADDE/SUBC/SUBE.  The problem is that these operations generate
-  // a carry of type MVT::Glue, but there doesn't seem to be any way to
-  // generate a value of this type in the expanded code sequence.
-  bool hasCarry =
-    TLI.isOperationLegalOrCustom(N->getOpcode() == ISD::ADD ?
-                                   ISD::ADDC : ISD::SUBC,
-                                 TLI.getTypeToExpandTo(*DAG.getContext(), NVT));
-
-  if (hasCarry) {
-    SDVTList VTList = DAG.getVTList(NVT, MVT::Glue);
-    if (N->getOpcode() == ISD::ADD) {
-      Lo = DAG.getNode(ISD::ADDC, dl, VTList, LoOps);
-      HiOps[2] = Lo.getValue(1);
-      Hi = DAG.getNode(ISD::ADDE, dl, VTList, HiOps);
-    } else {
-      Lo = DAG.getNode(ISD::SUBC, dl, VTList, LoOps);
-      HiOps[2] = Lo.getValue(1);
-      Hi = DAG.getNode(ISD::SUBE, dl, VTList, HiOps);
-    }
-    return;
-  }
-
-  bool hasOVF =
-    TLI.isOperationLegalOrCustom(N->getOpcode() == ISD::ADD ?
-                                   ISD::UADDO : ISD::USUBO,
-                                 TLI.getTypeToExpandTo(*DAG.getContext(), NVT));
+  bool hasOVF = TLI.isOperationLegalOrCustom(
+      N->getOpcode() == ISD::ADD ? ISD::UADDO : ISD::USUBO,
+      TLI.getTypeToExpandTo(*DAG.getContext(), NVT));
   TargetLoweringBase::BooleanContent BoolType = TLI.getBooleanContents(NVT);
 
   if (hasOVF) {
@@ -3330,6 +3305,29 @@ void DAGTypeLegalizer::ExpandIntRes_ADDSUB(SDNode *N,
     case TargetLoweringBase::ZeroOrNegativeOneBooleanContent:
       OVF = DAG.getSExtOrTrunc(OVF, dl, NVT);
       Hi = DAG.getNode(RevOpc, dl, NVT, Hi, OVF);
+    }
+    return;
+  }
+
+  // Do not generate ADDC/ADDE or SUBC/SUBE if the target does not support
+  // them.  TODO: Teach operation legalization how to expand unsupported
+  // ADDC/ADDE/SUBC/SUBE.  The problem is that these operations generate
+  // a carry of type MVT::Glue, but there doesn't seem to be any way to
+  // generate a value of this type in the expanded code sequence.
+  bool hasCarry = TLI.isOperationLegalOrCustom(
+      N->getOpcode() == ISD::ADD ? ISD::ADDC : ISD::SUBC,
+      TLI.getTypeToExpandTo(*DAG.getContext(), NVT));
+
+  if (hasCarry) {
+    SDVTList VTList = DAG.getVTList(NVT, MVT::Glue);
+    if (N->getOpcode() == ISD::ADD) {
+      Lo = DAG.getNode(ISD::ADDC, dl, VTList, LoOps);
+      HiOps[2] = Lo.getValue(1);
+      Hi = DAG.getNode(ISD::ADDE, dl, VTList, HiOps);
+    } else {
+      Lo = DAG.getNode(ISD::SUBC, dl, VTList, LoOps);
+      HiOps[2] = Lo.getValue(1);
+      Hi = DAG.getNode(ISD::SUBE, dl, VTList, HiOps);
     }
     return;
   }
