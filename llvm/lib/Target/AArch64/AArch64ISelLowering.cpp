@@ -19055,7 +19055,6 @@ static bool isSetCC(SDValue Op, SetCCInfoAndKind &SetCCInfo) {
   if (Op.getOpcode() != AArch64ISD::CSEL)
     return false;
   // Set the information about the operands.
-  // TODO: we want the operands of the Cmp not the csel
   SetCCInfo.Info.AArch64.Cmp = &Op.getOperand(3);
   SetCCInfo.IsAArch64 = true;
   SetCCInfo.Info.AArch64.CC =
@@ -19064,8 +19063,10 @@ static bool isSetCC(SDValue Op, SetCCInfoAndKind &SetCCInfo) {
   // Check that the operands matches the constraints:
   // (1) Both operands must be constants.
   // (2) One must be 1 and the other must be 0.
-  ConstantSDNode *TValue = dyn_cast<ConstantSDNode>(Op.getOperand(0));
-  ConstantSDNode *FValue = dyn_cast<ConstantSDNode>(Op.getOperand(1));
+  ConstantSDNode *TValue =
+      dyn_cast<ConstantSDNode>(Op.getOperand(3).getOperand(0));
+  ConstantSDNode *FValue =
+      dyn_cast<ConstantSDNode>(Op.getOperand(3).getOperand(1));
 
   // Check (1).
   if (!TValue || !FValue)
