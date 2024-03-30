@@ -4303,10 +4303,18 @@ static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
 
     // Don't try to form "natural" types if the elements don't line up with the
     // expected size.
-    // FIXME: We could potentially recurse down through the last element in the
+    // Recurse down through the last element in the
     // sub-struct to find a natural end point.
-    if (SL->getElementOffset(EndIndex) != EndOffset)
-      return nullptr;
+
+    if (SL->getElementOffset(EndIndex) != EndOffset) {
+      // Recurse down through the last element in the sub-struct
+      Type *LastElementTy = STy->getElementType(EndIndex);
+      uint64_t LastElementSize =
+          DL.getTypeAllocSize(LastElementTy).getFixedValue();
+      uint64_t LastElementOffset = EndOffset - SL->getElementOffset(EndIndex);
+      return getTypePartition(DL, LastElementTy, LastElementOffset,
+                              LastElementSize);
+    }
 
     assert(Index < EndIndex);
     EE = STy->element_begin() + EndIndex;
