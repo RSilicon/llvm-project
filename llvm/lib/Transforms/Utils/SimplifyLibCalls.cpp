@@ -1612,14 +1612,37 @@ Value *LibCallSimplifier::optimizeBCmp(CallInst *CI, IRBuilderBase &B) {
 }
 
 Value *LibCallSimplifier::optimizeMemCpy(CallInst *CI, IRBuilderBase &B) {
+  Value *Dest = CI->getArgOperand(0);
+  Value *Src = CI->getArgOperand(1);
   Value *Size = CI->getArgOperand(2);
   annotateNonNullAndDereferenceable(CI, {0, 1}, Size, DL);
+
+  // Transform memcpy(dst, src, strlen(src) + 1) -> strcpy(dst, src) iff src is
+  // not constant.
+
+  if (auto *BO = dyn_cast<BinaryOperator>(Size)) {
+    if (BO->getOpcode() == Instruction::Add) {
+      Value *LHS = BO->getOperand(0);
+      Value *RHS = BO->getOperand(1);
+      if (auto *StrLenCall = dyn_cast<CallInst>(LHS)) {
+        LibFunc Func;
+        if (TLI->getLibFunc(*StrLenCall, Func) && Func == LibFunc_strlen) {
+          if (StrLenCall->getArgOperand(0) == Src && isa<ConstantInt>(RHS)) {
+            ConstantInt *ConstInt = cast<ConstantInt>(RHS);
+            // Replace memcpy with strcpy
+            if (ConstInt->isOne())
+              return copyFlags(*CI, emitStrCpy(Dest, Src, B, TLI));
+          }
+        }
+      }
+    }
+  }
+
   if (isa<IntrinsicInst>(CI))
     return nullptr;
 
   // memcpy(x, y, n) -> llvm.memcpy(align 1 x, align 1 y, n)
-  CallInst *NewCI = B.CreateMemCpy(CI->getArgOperand(0), Align(1),
-                                   CI->getArgOperand(1), Align(1), Size);
+  CallInst *NewCI = B.CreateMemCpy(Dest, Align(1), Src, Align(1), Size);
   mergeAttributesAndFlags(NewCI, *CI);
   return CI->getArgOperand(0);
 }
