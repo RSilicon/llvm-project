@@ -22,6 +22,21 @@ define void @foo(ptr %P, ptr %X) {
   ret void
 }
 
+define void @memcpy_to_strcpy(ptr %0, ptr %1) {
+; CHECK-LABEL: @memcpy_to_strcpy(
+; CHECK-NEXT:    [[TMP3:%.*]] = call i32 @strlen(ptr noundef nonnull dereferenceable(1) [[TMP0:%.*]])
+; CHECK-NEXT:    [[TMP4:%.*]] = add i32 [[TMP3]], 1
+; CHECK-NEXT:    tail call void @llvm.memcpy.p0.p0.i32(ptr align 1 [[TMP0]], ptr align 1 [[TMP1:%.*]], i32 [[TMP4]], i1 false)
+; CHECK-NEXT:    ret void
+;
+  %3 = call i32 @strlen(ptr %0)
+  %4 = add i32 %3, 1
+  tail call void @llvm.memcpy.p0.p0.i32(ptr align 1 %0, ptr align 1 %1, i32 %4, i1 false)
+  ret void
+}
+
+declare i32 @strlen(ptr)
+
 ; PR1307
 @str = internal constant [5 x i8] c"foog\00"
 @str1 = internal constant [8 x i8] c"blahhh!\00"
@@ -313,18 +328,6 @@ define i32 @fake_snprintf(i32 %buf, double %len, ptr %str, ptr %ptr) {
 ;
   %call = call i32 @snprintf(ptr %ptr, double %len, ptr %str)
   ret i32 %call
-}
-
-; Wrong return type for the real strlen.
-; https://llvm.org/PR50836
-
-define i4 @strlen(ptr %s) {
-; CHECK-LABEL: @strlen(
-; CHECK-NEXT:    [[R:%.*]] = call i4 @strlen(ptr [[S:%.*]])
-; CHECK-NEXT:    ret i4 0
-;
-  %r = call i4 @strlen(ptr %s)
-  ret i4 0
 }
 
 ; Test emission of stpncpy.
