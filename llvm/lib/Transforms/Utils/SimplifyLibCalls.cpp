@@ -1620,11 +1620,29 @@ Value *LibCallSimplifier::optimizeMemCpy(CallInst *CI, IRBuilderBase &B) {
   // Transform memcpy(dst, src, strlen(src) + 1) -> strcpy(dst, src) iff src is
   // not constant.
 
+  Value *Strlen;
+  Value *StrlenAdd;
+  if (match(Size, m_Add(m_Value(Strlen), m_Value(StrlenAdd))))
+  {
+    auto *StrLenCall = dyn_cast<CallInst>(LHS);
+    auto *StrLenCall2 = dyn_cast<CallInst>(RHS);
+    if (!StrLenCall)
+    {
+      std::swap()
+    }
+  }
   if (auto *BO = dyn_cast<BinaryOperator>(Size)) {
     if (BO->getOpcode() == Instruction::Add) {
       Value *LHS = BO->getOperand(0);
       Value *RHS = BO->getOperand(1);
+      auto *StrLenCall = dyn_cast<CallInst>(LHS);
+
+      // If not left, maybe right is
+      if (!StrLenCall)
+
+      if 
       if (auto *StrLenCall = dyn_cast<CallInst>(LHS)) {
+
         LibFunc Func;
         if (TLI->getLibFunc(*StrLenCall, Func) && Func == LibFunc_strlen) {
           if (StrLenCall->getArgOperand(0) == Src && isa<ConstantInt>(RHS)) {
