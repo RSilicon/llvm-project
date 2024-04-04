@@ -2895,6 +2895,15 @@ Instruction *InstCombinerImpl::visitGetElementPtrInst(GetElementPtrInst &GEP) {
       // as:
       //   %newptr = getelementptr i32, ptr %ptr, i64 %idx1
       //   %newgep = getelementptr i32, ptr %newptr, i64 %idx2
+
+      if (GEP.isInBounds()) {
+        auto *NewPtr = Builder.CreateInBoundsGEP(GEP.getResultElementType(),
+                                                 GEP.getPointerOperand(), Idx1);
+
+        return GetElementPtrInst::CreateInBounds(GEP.getResultElementType(),
+                                                 NewPtr, Idx2);
+      }
+
       auto *NewPtr = Builder.CreateGEP(GEP.getResultElementType(),
                                        GEP.getPointerOperand(), Idx1);
       return GetElementPtrInst::Create(GEP.getResultElementType(), NewPtr,
