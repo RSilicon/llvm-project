@@ -2897,6 +2897,8 @@ Instruction *InstCombinerImpl::visitGetElementPtrInst(GetElementPtrInst &GEP) {
       //   %newgep = getelementptr i32, ptr %newptr, i64 %idx2
 
       if (GEP.isInBounds()) {
+         auto *BO = cast<OverflowingBinaryOperator>(GEP.getOperand(1));
+         if (BO->hasNoUnsignedWrap())
         auto *NewPtr = Builder.CreateInBoundsGEP(GEP.getResultElementType(),
                                                  GEP.getPointerOperand(), Idx1);
 
