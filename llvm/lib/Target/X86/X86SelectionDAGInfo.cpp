@@ -86,7 +86,7 @@ SDValue X86SelectionDAGInfo::EmitTargetCodeForMemset(
       ValReg = X86::EAX;
       Val = (Val << 8)  | Val;
       Val = (Val << 16) | Val;
-      if (Subtarget.is64Bit() && Alignment > Align(8)) { // QWORD aligned
+      if (Subtarget.is64Bit() && Alignment > Align(4)) { // QWORD aligned
         AVT = MVT::i64;
         ValReg = X86::RAX;
         Val = (Val << 32) | Val;
