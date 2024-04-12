@@ -661,7 +661,7 @@ static Value *foldShiftedShift(BinaryOperator *InnerShift, unsigned OuterShAmt,
     APInt Mask = IsInnerShl
                      ? APInt::getLowBitsSet(TypeWidth, TypeWidth - OuterShAmt)
                      : APInt::getHighBitsSet(TypeWidth, TypeWidth - OuterShAmt);
-    const Value *And = Builder.CreateAnd(InnerShift->getOperand(0),
+    Value *And = Builder.CreateAnd(InnerShift->getOperand(0),
                                          ConstantInt::get(ShType, Mask));
 
     if (MaskedValueIsZero(And, Mask, SQ.getWithInstruction(InnerShift), 0))
