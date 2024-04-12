@@ -662,7 +662,7 @@ static Value *foldShiftedShift(BinaryOperator *InnerShift, unsigned OuterShAmt,
                      ? APInt::getLowBitsSet(TypeWidth, TypeWidth - OuterShAmt)
                      : APInt::getHighBitsSet(TypeWidth, TypeWidth - OuterShAmt);
     Value *And = Builder.CreateAnd(InnerShift->getOperand(0),
-                                         ConstantInt::get(ShType, Mask));
+                                   ConstantInt::get(ShType, Mask));
 
     if (MaskedValueIsZero(And, Mask, SQ.getWithInstruction(InnerShift), 0))
       return Constant::getNullValue(ShType);
@@ -1668,18 +1668,25 @@ Instruction *InstCombinerImpl::visitAShr(BinaryOperator &I) {
 
   // Prefer `-(x & 1)` over `(x << (bitwidth(x)-1)) a>> (bitwidth(x)-1)`
   // as the pattern to splat the lowest bit.
-  // FIXME: iff X is already masked, we don't need the one-use check.
+  // Note: iff X is already masked, we don't need the one-use check.
   Value *X;
   if (match(Op1, m_SpecificIntAllowUndef(BitWidth - 1)) &&
-      match(Op0, m_OneUse(m_Shl(m_Value(X),
-                                m_SpecificIntAllowUndef(BitWidth - 1))))) {
-    Constant *Mask = ConstantInt::get(Ty, 1);
-    // Retain the knowledge about the ignored lanes.
-    Mask = Constant::mergeUndefsWith(
-        Constant::mergeUndefsWith(Mask, cast<Constant>(Op1)),
-        cast<Constant>(cast<Instruction>(Op0)->getOperand(1)));
-    X = Builder.CreateAnd(X, Mask);
-    return BinaryOperator::CreateNeg(X);
+      match(Op0, m_Shl(m_Value(X), m_SpecificIntAllowUndef(BitWidth - 1)))) {
+    KnownBits KnownX = computeKnownBits(X, 0, cast<Instruction>(Op0));
+    if (KnownX.getMaxValue().isOne() && KnownX.getMinValue().isZero()) {
+      // If X was already masked, it can only be either 1 or 0.
+      // No worries about if it has to be one or zero, as this would be folded out automatically.
+      return BinaryOperator::CreateNSWNeg(X);
+    }
+    if (Op0->hasOneUse()) {
+      Constant *Mask = ConstantInt::get(Ty, 1);
+      // Retain the knowledge about the ignored lanes.
+      Mask = Constant::mergeUndefsWith(
+          Constant::mergeUndefsWith(Mask, cast<Constant>(Op1)),
+          cast<Constant>(cast<Instruction>(Op0)->getOperand(1)));
+      X = Builder.CreateAnd(X, Mask);
+      return BinaryOperator::CreateNSWNeg(X);
+    }
   }
 
   if (Instruction *R = foldVariableSignZeroExtensionOfVariableHighBitExtract(I))
