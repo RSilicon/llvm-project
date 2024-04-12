@@ -1685,7 +1685,7 @@ Instruction *InstCombinerImpl::visitAShr(BinaryOperator &I) {
           Constant::mergeUndefsWith(Mask, cast<Constant>(Op1)),
           cast<Constant>(cast<Instruction>(Op0)->getOperand(1)));
       X = Builder.CreateAnd(X, Mask);
-      return BinaryOperator::CreateNSWNeg(X);
+      return BinaryOperator::CreateNeg(X);
     }
   }
 
