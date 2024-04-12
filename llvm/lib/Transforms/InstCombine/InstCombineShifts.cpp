@@ -621,7 +621,7 @@ static bool canEvaluateShifted(Value *V, unsigned NumBits, bool IsLeftShift,
 /// See canEvaluateShiftedShift() for the constraints on these instructions.
 static Value *foldShiftedShift(BinaryOperator *InnerShift, unsigned OuterShAmt,
                                bool IsOuterShl,
-                               InstCombiner::BuilderTy &Builder) {
+                               InstCombiner::BuilderTy &Builder, const SimplifyQuery &SQ) {
   bool IsInnerShl = InnerShift->getOpcode() == Instruction::Shl;
   Type *ShType = InnerShift->getType();
   unsigned TypeWidth = ShType->getScalarSizeInBits();
@@ -662,10 +662,10 @@ static Value *foldShiftedShift(BinaryOperator *InnerShift, unsigned OuterShAmt,
                      ? APInt::getLowBitsSet(TypeWidth, TypeWidth - OuterShAmt)
                      : APInt::getHighBitsSet(TypeWidth, TypeWidth - OuterShAmt);
     const Value *And = Builder.CreateAnd(InnerShift->getOperand(0),
-                                   ConstantInt::get(ShType, Mask));
-    
+                                         ConstantInt::get(ShType, Mask));
+
     if (MaskedValueIsZero(And, Mask, SQ.getWithInstruction(InnerShift), 0))
-        return Constant::getNullValue(ShType);
+      return Constant::getNullValue(ShType);
 
     if (auto *AndI = dyn_cast<Instruction>(And)) {
       AndI->moveBefore(InnerShift);
@@ -714,7 +714,7 @@ static Value *getShiftedValue(Value *V, unsigned NumBits, bool isLeftShift,
   case Instruction::Shl:
   case Instruction::LShr:
     return foldShiftedShift(cast<BinaryOperator>(I), NumBits, isLeftShift,
-                            IC.Builder);
+                            IC.Builder, IC.getSimplifyQuery());
 
   case Instruction::Select:
     I->setOperand(
