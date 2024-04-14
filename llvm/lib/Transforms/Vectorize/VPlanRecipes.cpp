@@ -1434,7 +1434,7 @@ void VPVectorPointerRecipe ::execute(VPTransformState &State) {
           ConstantInt::get(IndexTy, -(int64_t)Part), RunTimeVF);
       // LastLane = 1 - RunTimeVF
       Value *LastLane =
-          Builder.CreateSub(ConstantInt::get(IndexTy, 1), RunTimeVF);
+          Builder.CreateSub(ConstantInt::get(IndexTy, 1), RunTimeVF, "", false, InBounds);
       PartPtr = Builder.CreateGEP(IndexedTy, Ptr, NumElt, "", InBounds);
       PartPtr = Builder.CreateGEP(IndexedTy, PartPtr, LastLane, "", InBounds);
     } else {

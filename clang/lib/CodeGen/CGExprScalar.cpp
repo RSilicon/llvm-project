@@ -5593,7 +5593,7 @@ static GEPOffsetAndOverflow EmitGEPOffsetInBytes(Value *BasePtr, Value *GEPVal,
         Builder.CreatePtrToInt(BasePtr, DL.getIntPtrType(BasePtr->getType()));
     Value *GEPVal_int =
         Builder.CreatePtrToInt(GEPVal, DL.getIntPtrType(GEPVal->getType()));
-    TotalOffset = Builder.CreateSub(GEPVal_int, BasePtr_int);
+    TotalOffset = Builder.CreateNSWSub(GEPVal_int, BasePtr_int);
     return {TotalOffset, /*OffsetOverflows=*/Builder.getFalse()};
   }
 
