@@ -2477,9 +2477,17 @@ Instruction *InstCombinerImpl::visitCallInst(CallInst &CI) {
 
     // Clear sign-bit of constant magnitude:
     // copysign -MagC, X --> copysign MagC, X
-    // TODO: Support constant folding for fabs
     const APFloat *MagC;
     if (match(Mag, m_APFloat(MagC)) && MagC->isNegative()) {
+      APFloat PosMagC = *MagC;
+      PosMagC.clearSign();
+      return replaceOperand(*II, 0, ConstantFP::get(Mag->getType(), PosMagC));
+    }
+
+    // Clear sign-bit of fabs or fneg of MagC
+    // copysign fabs MagC, X --> copysign MagC, X
+    if (match(Mag, m_FAbs(m_APFloat(MagC))) ||
+        match(Mag, m_FNeg(m_APFloat(MagC)))) {
       APFloat PosMagC = *MagC;
       PosMagC.clearSign();
       return replaceOperand(*II, 0, ConstantFP::get(Mag->getType(), PosMagC));
