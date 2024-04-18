@@ -211,20 +211,20 @@ void MipsSEDAGToDAGISel::selectAddE(SDNode *Node, const SDLoc &DL) const {
 
   // In the base case, we can rely on the carry bit from the addsc
   // instruction.
-  if (Opc == ISD::ADDC) {
+  if (Opc == ISD::UADDO_CARRY) {
     SDValue Ops[3] = {LHS, RHS, InGlue};
     CurDAG->SelectNodeTo(Node, Mips::ADDWC, VT, MVT::Glue, Ops);
     return;
   }
 
-  assert(Opc == ISD::ADDE && "ISD::ADDE not in a chain of ADDE nodes!");
+  assert(Opc == ISD::UADDO && "ISD::UADDO not in a chain of UADDO nodes!");
 
-  // The more complex case is when there is a chain of ISD::ADDE nodes like:
-  // (adde (adde (adde (addc a b) c) d) e).
+  // The more complex case is when there is a chain of ISD::UADDO nodes like:
+  // (uaddo (uaddo (uaddo (uaddo_carry a b) c) d) e).
   //
   // The addwc instruction does not write to the carry bit, instead it writes
   // to bit 20 of the dsp control register. To match this series of nodes, each
-  // intermediate adde node must be expanded to write the carry bit before the
+  // intermediate uaddo node must be expanded to write the carry bit before the
   // addition.
 
   // Start by reading the overflow field for addsc and moving the value to the
@@ -759,7 +759,7 @@ bool MipsSEDAGToDAGISel::trySelect(SDNode *Node) {
     return true;
   }
 
-  case ISD::ADDE: {
+  case ISD::UADDO: {
     selectAddE(Node, DL);
     return true;
   }

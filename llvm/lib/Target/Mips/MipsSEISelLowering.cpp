@@ -102,8 +102,8 @@ MipsSETargetLowering::MipsSETargetLowering(const MipsTargetMachine &TM,
         {ISD::SHL, ISD::SRA, ISD::SRL, ISD::SETCC, ISD::VSELECT});
 
     if (Subtarget.hasMips32r2()) {
-      setOperationAction(ISD::ADDC, MVT::i32, Legal);
-      setOperationAction(ISD::ADDE, MVT::i32, Legal);
+      setOperationAction(ISD::UADDO_CARRY, MVT::i32, Legal);
+      setOperationAction(ISD::UADDO, MVT::i32, Legal);
     }
   }
 
