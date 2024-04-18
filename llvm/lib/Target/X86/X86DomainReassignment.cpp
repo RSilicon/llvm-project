@@ -410,7 +410,7 @@ private:
                      SmallVectorImpl<unsigned> &Worklist);
 
   /// Reassign the closure to \p Domain.
-  void reassign(const Closure &C, RegDomain Domain) const;
+  void reassign(const MachineFunction &MF, const Closure &C, RegDomain Domain) const;
 
   /// Add \p MI to the closure.
   void encloseInstr(Closure &C, MachineInstr *MI);
@@ -494,36 +494,68 @@ bool X86DomainReassignment::isReassignmentProfitable(const Closure &C,
 /// other than ZF.
 
 // TODO: Merge with X86DAGToDAGISel
-
-bool onlyUsesZeroFlag(MachineInstr &MI) {
+bool onlyUsesZeroFlag(const TargetRegisterInfo &TRI, const llvm::MachineInstr &MI) {
   // Get the TargetInstrInfo for this instruction
-  const llvm::TargetInstrInfo *TII = MI.getDesc().getInstrInfo();
+  if (MI.killsRegister(X86::EFLAGS))
+    return true;
+  
+  MachineBasicBlock *BB = MI.getParent();
+
+  LiveRegUnits LiveRegs(TRI);
+  LiveRegs.addLiveOuts()
+
+  // The EFLAGS operand of MI might be missing a kill marker.
+  // Figure out whether EFLAGS operand should LIVE after MI instruction.
+  MachineBasicBlock *BB = MI.getParent();
+  MachineBasicBlock::iterator ItrMI = MI.getIterator();
+
+  // Scan forward through BB for a use/def of EFLAGS.
+  for (auto I = std::next(ItrMI), E = BB->end(); I != E; ++I) {
+    if (I->readsRegister(X86::EFLAGS))
+      return true;
+    if (I->definesRegister(X86::EFLAGS))
+      return false;
+  }
+
+  // We hit the end of the block, check whether EFLAGS is live into a successor.
+  for (MachineBasicBlock *Succ : BB->successors())
+    if (Succ->isLiveIn(X86::EFLAGS))
+      return true;
+
+  return false;
+  const llvm::TargetInstrInfo *TII = MI.getDesc().isPredicate();
 
   // Check if this instruction sets the EFLAGS
   if (!TII->isPredicated(MI)) {
     return false;
   }
 
-  // Check each use of this instruction
-  for (const llvm::MachineOperand &MO : MI.uses()) {
-    // Skip uses that are not register uses or are not using EFLAGS
-    if (!MO.isReg() || MO.getReg() != llvm::X86::EFLAGS) {
-      continue;
-    }
+  // Check each instruction in the function
+  for (const llvm::MachineBasicBlock &MBB : MF) {
+    for (const llvm::MachineInstr &User : MBB) {
+      // Skip instructions that are not the same as the original instruction
+      if (&User == &MI)
+        continue;
 
-    // Check each user of this operand
-    for (const llvm::MachineInstr &User : MO.users()) {
-      // Get the condition code for this user
-      llvm::X86::CondCode CC = static_cast<llvm::X86::CondCode>(User.getOperand(0).getImm());
-
-      switch (CC) {
-        // Comparisons which only use the zero flag
-        case llvm::X86::COND_E:
-        case llvm::X86::COND_NE:
+      // Check each operand of the user instruction
+      for (const llvm::MachineOperand &MO : User.operands()) {
+        // Skip operands that are not register uses or are not using EFLAGS
+        if (!MO.isReg() || !MO.isUse() || MO.getReg() != llvm::X86::EFLAGS) {
           continue;
-        // Anything else: assume conservatively
-        default:
-          return false;
+        }
+
+        // Get the condition code for this user
+        llvm::X86::CondCode CC = static_cast<llvm::X86::CondCode>(User.getOperand(0).getImm());
+
+        switch (CC) {
+          // Comparisons which only use the zero flag
+          case llvm::X86::COND_E:
+          case llvm::X86::COND_NE:
+            continue;
+          // Anything else: assume conservatively
+          default:
+            return false;
+        }
       }
     }
   }
@@ -531,16 +563,16 @@ bool onlyUsesZeroFlag(MachineInstr &MI) {
   return true;
 }
 
-void X86DomainReassignment::reassign(const Closure &C, RegDomain Domain) const {
+void X86DomainReassignment::reassign(const MachineFunction &MF, const Closure &C, RegDomain Domain) const {
   assert(C.isLegal(Domain) && "Cannot convert illegal closure");
 
   auto canConvert = [&](MachineInstr &Instr) {
-    switch (MI.getOpcode()) {
+    switch (Instr.getOpcode()) {
     case X86::TEST8rr:
     case X86::TEST16rr:
     case X86::TEST32rr:
     case X86::TEST64rr:
-      return onlyUsesZeroFlag(Instr);
+      return onlyUsesZeroFlag(MRI->getTargetRegisterInfo(), Instr);
     default:
       return true;
     }
@@ -868,7 +900,7 @@ bool X86DomainReassignment::runOnMachineFunction(MachineFunction &MF) {
   for (Closure &C : Closures) {
     LLVM_DEBUG(C.dump(MRI));
     if (isReassignmentProfitable(C, MaskDomain)) {
-      reassign(C, MaskDomain);
+      reassign(MF, C, MaskDomain);
       ++NumClosuresConverted;
       Changed = true;
     }
