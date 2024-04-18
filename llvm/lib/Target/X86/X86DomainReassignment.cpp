@@ -490,16 +490,70 @@ bool X86DomainReassignment::isReassignmentProfitable(const Closure &C,
   return calculateCost(C, Domain) < 0.0;
 }
 
+/// Test whether the given MachineInstr has any users that use a flag
+/// other than ZF.
+
+// TODO: Merge with X86DAGToDAGISel
+
+bool onlyUsesZeroFlag(MachineInstr &MI) {
+  // Get the TargetInstrInfo for this instruction
+  const llvm::TargetInstrInfo *TII = MI.getDesc().getInstrInfo();
+
+  // Check if this instruction sets the EFLAGS
+  if (!TII->isPredicated(MI)) {
+    return false;
+  }
+
+  // Check each use of this instruction
+  for (const llvm::MachineOperand &MO : MI.uses()) {
+    // Skip uses that are not register uses or are not using EFLAGS
+    if (!MO.isReg() || MO.getReg() != llvm::X86::EFLAGS) {
+      continue;
+    }
+
+    // Check each user of this operand
+    for (const llvm::MachineInstr &User : MO.users()) {
+      // Get the condition code for this user
+      llvm::X86::CondCode CC = static_cast<llvm::X86::CondCode>(User.getOperand(0).getImm());
+
+      switch (CC) {
+        // Comparisons which only use the zero flag
+        case llvm::X86::COND_E:
+        case llvm::X86::COND_NE:
+          continue;
+        // Anything else: assume conservatively
+        default:
+          return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 void X86DomainReassignment::reassign(const Closure &C, RegDomain Domain) const {
   assert(C.isLegal(Domain) && "Cannot convert illegal closure");
+
+  auto canConvert = [&](MachineInstr &Instr) {
+    switch (MI.getOpcode()) {
+    case X86::TEST8rr:
+    case X86::TEST16rr:
+    case X86::TEST32rr:
+    case X86::TEST64rr:
+      return onlyUsesZeroFlag(Instr);
+    default:
+      return true;
+    }
+  };
 
   // Iterate all instructions in the closure, convert each one using the
   // appropriate converter.
   SmallVector<MachineInstr *, 8> ToErase;
-  for (auto *MI : C.instructions())
-    if (Converters.find({Domain, MI->getOpcode()})
-            ->second->convertInstr(MI, TII, MRI))
+  for (auto *MI : C.instructions()) {
+    if (canConvert(MI) && Converters.find({Domain, MI->getOpcode()})
+                              ->second->convertInstr(MI, TII, MRI))
       ToErase.push_back(MI);
+  }
 
   // Iterate all registers in the closure, replace them with registers in the
   // destination domain.
@@ -711,10 +765,9 @@ void X86DomainReassignment::initConverters() {
       createReplacer(X86::XOR64rr_ND, X86::KXORQrr);
     }
 
-    // TODO: KTEST is not a replacement for TEST due to flag differences. Need
-    // to prove only Z flag is used.
-    // createReplacer(X86::TEST32rr, X86::KTESTDrr);
-    // createReplacer(X86::TEST64rr, X86::KTESTQrr);
+    // KTEST is only a replacement for TEST if only Z flag is used.
+    createReplacer(X86::TEST32rr, X86::KTESTDrr);
+    createReplacer(X86::TEST64rr, X86::KTESTQrr);
   }
 
   if (STI->hasDQI()) {
@@ -734,10 +787,9 @@ void X86DomainReassignment::initConverters() {
     createReplacer(X86::SHR8ri, X86::KSHIFTRBri);
     createReplacer(X86::SHL8ri, X86::KSHIFTLBri);
 
-    // TODO: KTEST is not a replacement for TEST due to flag differences. Need
-    // to prove only Z flag is used.
-    // createReplacer(X86::TEST8rr, X86::KTESTBrr);
-    // createReplacer(X86::TEST16rr, X86::KTESTWrr);
+    // KTEST is only a replacement for TEST if only Z flag is used.
+    createReplacer(X86::TEST8rr, X86::KTESTBrr);
+    createReplacer(X86::TEST16rr, X86::KTESTWrr);
 
     createReplacer(X86::XOR8rr, X86::KXORBrr);
 
