@@ -396,6 +396,9 @@ static void computeKnownBitsMul(const Value *Op0, const Value *Op1, bool NSW,
         isGuaranteedNotToBeUndef(Op0, Q.AC, Q.CxtI, Q.DT, Depth + 1);
   Known = KnownBits::mul(Known, Known2, SelfMultiply);
 
+  if (SelfMultiply && Known.getBitWidth() > 1)
+    Known.Zero.setBit(1);
+
   // Only make use of no-wrap flags if we failed to compute the sign bit
   // directly.  This matters if the multiplication always overflows, in
   // which case we prefer to follow the result of the direct computation,
