@@ -3275,11 +3275,11 @@ static bool isModifyingBinopOfNonZero(const Value *V1, const Value *V2,
 /// the multiplication is nuw or nsw.
 static bool isNonEqualMul(const Value *V1, const Value *V2, unsigned Depth,
                           const SimplifyQuery &Q) {
-  auto NotZeroOrOne = [](const APInt &C) { return !C.isZero() && !C.isOne(); };
   if (auto *OBO = dyn_cast<OverflowingBinaryOperator>(V2)) {
-    return match(OBO, m_Mul(m_Specific(V1), m_CheckedInt(NotZeroOrOne))) &&
+    const APInt *C;
+    return match(OBO, m_Mul(m_Specific(V1), m_APInt(C))) &&
            (OBO->hasNoUnsignedWrap() || OBO->hasNoSignedWrap()) &&
-           isKnownNonZero(V1, Q, Depth + 1);
+           !C->isZero() && !C->isOne() && isKnownNonZero(V1, Q, Depth + 1);
   }
   return false;
 }
@@ -3288,11 +3288,11 @@ static bool isNonEqualMul(const Value *V1, const Value *V2, unsigned Depth,
 /// the shift is nuw or nsw.
 static bool isNonEqualShl(const Value *V1, const Value *V2, unsigned Depth,
                           const SimplifyQuery &Q) {
-  auto NotZeroOrOne = [](const APInt &C) { return !C.isZero() && !C.isOne(); };
   if (auto *OBO = dyn_cast<OverflowingBinaryOperator>(V2)) {
-    return match(OBO, m_Shl(m_Specific(V1), m_CheckedInt(NotZeroOrOne))) &&
+    const APInt *C;
+    return match(OBO, m_Shl(m_Specific(V1), m_APInt(C))) &&
            (OBO->hasNoUnsignedWrap() || OBO->hasNoSignedWrap()) &&
-           isKnownNonZero(V1, Q, Depth + 1);
+           !C->isZero() && isKnownNonZero(V1, Q, Depth + 1);
   }
   return false;
 }

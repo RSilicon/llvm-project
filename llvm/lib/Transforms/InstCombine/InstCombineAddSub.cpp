@@ -1761,9 +1761,7 @@ Instruction *InstCombinerImpl::visitAdd(BinaryOperator &I) {
   // zext(ctpop(A) >u/!= 1) + (ctlz(A, true) ^ (BW - 1))
   // -->
   // BW - ctlz(A - 1, false)
-  auto CheckBW = [A](const APInt &XorC) {
-    return XorC == A->getType()->getScalarSizeInBits() - 1;
-  };
+  const APInt *XorC;
   if (match(&I,
             m_c_Add(
                 m_ZExt(m_ICmp(Pred, m_Intrinsic<Intrinsic::ctpop>(m_Value(A)),
@@ -1771,8 +1769,9 @@ Instruction *InstCombinerImpl::visitAdd(BinaryOperator &I) {
                 m_OneUse(m_ZExtOrSelf(m_OneUse(m_Xor(
                     m_OneUse(m_TruncOrSelf(m_OneUse(
                         m_Intrinsic<Intrinsic::ctlz>(m_Deferred(A), m_One())))),
-                    m_CheckedInt(CheckBW))))))) &&
-      (Pred == ICmpInst::ICMP_UGT || Pred == ICmpInst::ICMP_NE)) {
+                    m_APInt(XorC))))))) &&
+      (Pred == ICmpInst::ICMP_UGT || Pred == ICmpInst::ICMP_NE) &&
+      *XorC == A->getType()->getScalarSizeInBits() - 1) {
     Value *Sub = Builder.CreateAdd(A, Constant::getAllOnesValue(A->getType()));
     Value *Ctlz = Builder.CreateIntrinsic(Intrinsic::ctlz, {A->getType()},
                                           {Sub, Builder.getFalse()});

@@ -2071,10 +2071,8 @@ static BinopElts getAlternateBinop(BinaryOperator *BO, const DataLayout &DL) {
   }
   case Instruction::Or: {
     // or X, C --> add X, C (when X and C have no common bits set)
-    auto CheckMaskedValIsZero = [BO0, DL](const APInt &C) {
-      return MaskedValueIsZero(BO0, C, DL);
-    };
-    if (match(BO1, m_CheckedInt(CheckMaskedValIsZero)))
+    const APInt *C;
+    if (match(BO1, m_APInt(C)) && MaskedValueIsZero(BO0, *C, DL))
       return {Instruction::Add, BO0, BO1};
     break;
   }

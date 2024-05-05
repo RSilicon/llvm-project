@@ -764,8 +764,8 @@ Instruction *InstCombinerImpl::visitTrunc(TruncInst &Trunc) {
     }
 
     {
-      auto CheckOdd = [](const APInt &C) { return (C)[0] == 1; };
-      if (match(Src, m_Shl(m_CheckedInt(CheckOdd), m_Value(X)))) {
+      const APInt *C;
+      if (match(Src, m_Shl(m_APInt(C), m_Value(X))) && (*C)[0] == 1) {
         // trunc (C << X) to i1 --> X == 0, where C is odd
         return new ICmpInst(ICmpInst::Predicate::ICMP_EQ, X, Zero);
       }
