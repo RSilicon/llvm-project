@@ -5579,12 +5579,33 @@ bool SelectionDAG::isKnownNeverZero(SDValue Op, unsigned Depth) const {
     return ne && *ne;
   }
 
-  case ISD::MUL:
+  case ISD::MUL: {
     if (Op->getFlags().hasNoSignedWrap() || Op->getFlags().hasNoUnsignedWrap())
       if (isKnownNeverZero(Op.getOperand(1), Depth + 1) &&
           isKnownNeverZero(Op.getOperand(0), Depth + 1))
         return true;
+
+    // If either X or Y is odd, then if the other is non-zero the result can't
+    // be zero.
+    KnownBits XKnown = computeKnownBits(Op.getOperand(0), Depth + 1);
+    if (XKnown.One[0])
+      return isKnownNeverZero(Op.getOperand(1), Depth + 1);
+
+    KnownBits YKnown = computeKnownBits(Op.getOperand(1), Depth + 1);
+    if (YKnown.One[0])
+      return XKnown.isNonZero() ||
+             isKnownNeverZero(Op.getOperand(0), Depth + 1);
+
+    // If there exists any subset of X (sX) and subset of Y (sY) s.t sX * sY is
+    // non-zero, then X * Y is non-zero. We can find sX and sY by just taking
+    // the lowest known One of X and Y. If they are non-zero, the result
+    // must be non-zero. We can check if LSB(X) * LSB(Y) != 0 by doing
+    // X.CountLeadingZeros + Y.CountLeadingZeros < BitWidth.
+    if ((XKnown.countMaxTrailingZeros() + YKnown.countMaxTrailingZeros()) <
+        Op.getScalarValueSizeInBits())
+      return true;
     break;
+  }
 
   case ISD::ZERO_EXTEND:
   case ISD::SIGN_EXTEND:
