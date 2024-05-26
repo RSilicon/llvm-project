@@ -900,6 +900,14 @@ Instruction *InstCombinerImpl::foldAddWithConstant(BinaryOperator &Add) {
       match(Op1, m_One()))
     return new ZExtInst(Builder.CreateIsNotNeg(X, "isnotneg"), Ty);
 
+  // (iN 2 << X) - 1 --> -1 >> (N - 1) - nuw nsw X
+  if (match(Op0, m_OneUse(m_Shl(m_SpecificIntAllowPoison(2), m_Value(X)))) &&
+      match(Op1, m_AllOnes()))
+    return BinaryOperator::CreateLShr(
+        ConstantInt::getAllOnesValue(Ty),
+        Builder.CreateSub(ConstantInt::get(Ty, BitWidth - 1), X, "", true,
+                          true));
+
   if (!match(Op1, m_APInt(C)))
     return nullptr;
 
