@@ -2443,6 +2443,10 @@ StrengthenNoWrapFlags(ScalarEvolution *SE, SCEVTypes Type,
     return SE->isKnownNonNegative(S);
   };
 
+  auto IsKnownNonPositive = [&](const SCEV *S) {
+    return SE->isKnownNonPositive(S);
+  };
+
   if (SignOrUnsignWrap == SCEV::FlagNSW && all_of(Ops, IsKnownNonNegative))
     Flags =
         ScalarEvolution::setFlags(Flags, (SCEV::NoWrapFlags)SignOrUnsignMask);
@@ -2484,11 +2488,16 @@ StrengthenNoWrapFlags(ScalarEvolution *SE, SCEVTypes Type,
   }
 
   // <0,+,nonnegative><nw> is also nuw
-  // TODO: Add corresponding nsw case
   if (Type == scAddRecExpr && ScalarEvolution::hasFlags(Flags, SCEV::FlagNW) &&
       !ScalarEvolution::hasFlags(Flags, SCEV::FlagNUW) && Ops.size() == 2 &&
       Ops[0]->isZero() && IsKnownNonNegative(Ops[1]))
     Flags = ScalarEvolution::setFlags(Flags, SCEV::FlagNUW);
+  
+  // <0,+,nonpositive><nw> is also nsw
+  if (Type == scAddRecExpr && ScalarEvolution::hasFlags(Flags, SCEV::FlagNW) &&
+      !ScalarEvolution::hasFlags(Flags, SCEV::FlagNSW) && Ops.size() == 2 &&
+      Ops[0]->isZero() && IsKnownNonPositive(Ops[1]))
+    Flags = ScalarEvolution::setFlags(Flags, SCEV::FlagNSW);
 
   // both (udiv X, Y) * Y and Y * (udiv X, Y) are always NUW
   if (Type == scMulExpr && !ScalarEvolution::hasFlags(Flags, SCEV::FlagNUW) &&
