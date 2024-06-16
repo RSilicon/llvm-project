@@ -1472,3 +1472,65 @@ define i32 @or_xor_tree_1111(i32 %ax, i32 %bx, i32 %cx) {
   %or = or i32 %xor3, %xor1
   ret i32 %or
 }
+
+; (A ^ ~C) | ((B ^ C) ^ A) -> (A ^ ~C) | ~B
+
+define i32 @inverse (i32 %a, i32 %b) {
+; CHECK-LABEL: @inverse(
+; CHECK-NEXT:    [[NOT:%.*]] = xor i32 [[A:%.*]], -2
+; CHECK-NEXT:    [[TMP1:%.*]] = xor i32 [[A]], [[B:%.*]]
+; CHECK-NEXT:    [[XOR1:%.*]] = xor i32 [[TMP1]], 1
+; CHECK-NEXT:    [[OR:%.*]] = or i32 [[XOR1]], [[NOT]]
+; CHECK-NEXT:    ret i32 [[OR]]
+;
+  %not = xor i32 %a, -2
+  %3 = xor i32 %a, %b
+  %xor1 = xor i32 %3, 1
+  %or = or i32 %xor1, %not
+  ret i32 %or
+}
+
+define i32 @inverse2 (i32 %a, i32 %b) {
+; CHECK-LABEL: @inverse2(
+; CHECK-NEXT:    [[NOT:%.*]] = xor i32 [[A:%.*]], -2
+; CHECK-NEXT:    [[TMP1:%.*]] = xor i32 [[B:%.*]], [[A]]
+; CHECK-NEXT:    [[XOR1:%.*]] = xor i32 [[TMP1]], 1
+; CHECK-NEXT:    [[OR:%.*]] = or i32 [[XOR1]], [[NOT]]
+; CHECK-NEXT:    ret i32 [[OR]]
+;
+  %not = xor i32 %a, -2
+  %3 = xor i32 %b, %a
+  %xor1 = xor i32 %3, 1
+  %or = or i32 %xor1, %not
+  ret i32 %or
+}
+
+define i32 @inverse3 (i32 %a, i32 %b) {
+; CHECK-LABEL: @inverse3(
+; CHECK-NEXT:    [[NOT:%.*]] = xor i32 [[A:%.*]], -2
+; CHECK-NEXT:    [[TMP1:%.*]] = xor i32 [[B:%.*]], [[A]]
+; CHECK-NEXT:    [[XOR1:%.*]] = xor i32 [[TMP1]], 1
+; CHECK-NEXT:    [[OR:%.*]] = or i32 [[NOT]], [[XOR1]]
+; CHECK-NEXT:    ret i32 [[OR]]
+;
+  %not = xor i32 %a, -2
+  %3 = xor i32 %b, %a
+  %xor1 = xor i32 %3, 1
+  %or = or i32 %not, %xor1
+  ret i32 %or
+}
+
+define i32 @inverse4 (i32 %a, i32 %b) {
+; CHECK-LABEL: @inverse4(
+; CHECK-NEXT:    [[NOT:%.*]] = xor i32 [[A:%.*]], -2
+; CHECK-NEXT:    [[TMP1:%.*]] = xor i32 [[A]], [[B:%.*]]
+; CHECK-NEXT:    [[XOR1:%.*]] = xor i32 [[TMP1]], 1
+; CHECK-NEXT:    [[OR:%.*]] = or i32 [[NOT]], [[XOR1]]
+; CHECK-NEXT:    ret i32 [[OR]]
+;
+  %not = xor i32 %a, -2
+  %3 = xor i32 %a, %b
+  %xor1 = xor i32 %3, 1
+  %or = or i32 %not, %xor1
+  ret i32 %or
+}
