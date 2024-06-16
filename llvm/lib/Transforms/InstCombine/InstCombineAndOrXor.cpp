@@ -2037,6 +2037,25 @@ static Instruction *foldComplexAndOrPatterns(BinaryOperator &I,
           X);
   }
 
+  // (A ^ B ^ C) | (A ^ ~C) -> (A ^ ~C) | ~B, i.e. all bits set to one.
+  // Although it would be nice to convert to ~((A ^ C) & B) for consistency,
+  // we can make this more effectve by reusing the (A ^ ~C) part, hence not
+  // requiring one-use However, the deMorgan transform should take care of (A ^
+  // ~C) | ~B should A ^ ~C have one-use
+
+  const APInt *C1;
+  if (Opcode == Instruction::Or &&
+      match(Op0, m_c_Xor(m_c_Xor(m_Value(A), m_Value(B)), m_APInt(C1))) &&
+      match(Op1, m_c_Xor(m_Specific(A), m_SpecificInt(~*C1)))) {
+    return BinaryOperator::CreateOr(Op1, Builder.CreateNot(B));
+  }
+
+  if (Opcode == Instruction::Or &&
+      match(Op1, m_c_Xor(m_c_Xor(m_Value(A), m_Value(B)), m_APInt(C1))) &&
+      match(Op0, m_c_Xor(m_Specific(A), m_SpecificInt(~*C1)))) {
+    return BinaryOperator::CreateOr(Op0, Builder.CreateNot(B));
+  }
+
   return nullptr;
 }
 
@@ -3610,6 +3629,21 @@ Instruction *InstCombinerImpl::visitOr(BinaryOperator &I) {
               m_c_Xor(m_c_Xor(m_Specific(B), m_Value(C)), m_Specific(A))) ||
         match(Op0, m_c_Xor(m_c_Xor(m_Specific(A), m_Value(C)), m_Specific(B))))
       return BinaryOperator::CreateOr(Op1, C);
+
+  // (A ^ B ^ C) | (A ^ ~C) -> (A ^ ~C) | ~B, i.e. all bits set to one.
+  // Although it would be nice to convert to ~((A ^ C) & B) for consistency,
+  // we can make this more effectve by reusing the (A ^ ~C) part, hence not
+  // requiring one-use However, the deMorgan transform should take care of (A ^
+  // ~C) | ~B should A ^ ~C have one-use
+  if (match(Op0, m_c_Xor(m_c_Xor(m_Value(A), m_Value(B)), m_Value(C))) &&
+      match(Op1, m_c_Xor(m_Specific(A), m_Not(m_Specific(C))))) {
+    return BinaryOperator::CreateOr(Op1, Builder.CreateNot(B));
+  }
+
+  if (match(Op1, m_c_Xor(m_c_Xor(m_Value(A), m_Value(B)), m_Value(C))) &&
+      match(Op0, m_c_Xor(m_Specific(A), m_Not(m_Specific(C))))) {
+    return BinaryOperator::CreateOr(Op0, Builder.CreateNot(B));
+  }
 
   if (Instruction *DeMorgan = matchDeMorgansLaws(I, *this))
     return DeMorgan;

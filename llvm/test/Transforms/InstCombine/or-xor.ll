@@ -1478,9 +1478,8 @@ define i32 @or_xor_tree_1111(i32 %ax, i32 %bx, i32 %cx) {
 define i32 @inverse (i32 %a, i32 %b) {
 ; CHECK-LABEL: @inverse(
 ; CHECK-NEXT:    [[NOT:%.*]] = xor i32 [[A:%.*]], -2
-; CHECK-NEXT:    [[TMP1:%.*]] = xor i32 [[A]], [[B:%.*]]
-; CHECK-NEXT:    [[XOR1:%.*]] = xor i32 [[TMP1]], 1
-; CHECK-NEXT:    [[OR:%.*]] = or i32 [[XOR1]], [[NOT]]
+; CHECK-NEXT:    [[TMP1:%.*]] = xor i32 [[B:%.*]], -1
+; CHECK-NEXT:    [[OR:%.*]] = or i32 [[NOT]], [[TMP1]]
 ; CHECK-NEXT:    ret i32 [[OR]]
 ;
   %not = xor i32 %a, -2
@@ -1523,9 +1522,8 @@ define i32 @inverse3 (i32 %a, i32 %b) {
 define i32 @inverse4 (i32 %a, i32 %b) {
 ; CHECK-LABEL: @inverse4(
 ; CHECK-NEXT:    [[NOT:%.*]] = xor i32 [[A:%.*]], -2
-; CHECK-NEXT:    [[TMP1:%.*]] = xor i32 [[A]], [[B:%.*]]
-; CHECK-NEXT:    [[XOR1:%.*]] = xor i32 [[TMP1]], 1
-; CHECK-NEXT:    [[OR:%.*]] = or i32 [[NOT]], [[XOR1]]
+; CHECK-NEXT:    [[TMP1:%.*]] = xor i32 [[B:%.*]], -1
+; CHECK-NEXT:    [[OR:%.*]] = or i32 [[NOT]], [[TMP1]]
 ; CHECK-NEXT:    ret i32 [[OR]]
 ;
   %not = xor i32 %a, -2
