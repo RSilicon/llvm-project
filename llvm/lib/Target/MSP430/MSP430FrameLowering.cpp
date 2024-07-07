@@ -170,7 +170,7 @@ void MSP430FrameLowering::emitPrologue(MachineFunction &MF,
     // instruction, merge the two instructions.
     // mergeSPUpdatesDown(MBB, MBBI, &NumBytes);
 
-    if (NumBytes) {
+
       MachineInstr *MI =
           BuildMI(MBB, MBBI, DL, TII.get(MSP430::SUB16ri), MSP430::SP)
               .addReg(MSP430::SP)
@@ -178,7 +178,7 @@ void MSP430FrameLowering::emitPrologue(MachineFunction &MF,
               .setMIFlag(MachineInstr::FrameSetup);
       // The SRW implicit def is dead.
       MI->getOperand(3).setIsDead();
-    }
+
     if (!hasFP(MF)) {
       // Adjust the previous CFA value if CFA was not redefined by FP
       BuildCFI(
