@@ -750,6 +750,17 @@ define i32 @mul_splat_fold_no_nuw(i32 noundef %x) {
   ret i32 %t
 }
 
+define i32 @mul_splat_fold_no_nuw_undef(i32 %x) {
+; CHECK-LABEL: @mul_splat_fold_no_nuw(
+; CHECK-NEXT:    [[TMP1:%.*]] = lshr i32 [[X:%.*]], 16
+; CHECK-NEXT:    [[T:%.*]] = add nsw i32 [[TMP1]], [[X]]
+; CHECK-NEXT:    ret i32 [[T]]
+;
+  %m = mul nsw i32 %x, 65537
+  %t = lshr i32 %m, 16
+  ret i32 %t
+}
+
 ; Negative test
 
 define i32 @mul_splat_fold_no_flags(i32 %x) {

@@ -1499,7 +1499,10 @@ Instruction *InstCombinerImpl::visitLShr(BinaryOperator &I) {
           return replaceInstUsesWith(I, X);
 
         // lshr (mul nuw (X, 2^N + 1)), N -> add nuw (X, lshr(X, N))
-        if (Op0->hasOneUse() && isGuaranteedNotToBeUndef(X, &AC, &I, &DT)) {
+        if (Op0->hasOneUse()) {
+          if (!isGuaranteedNotToBeUndef(X, &AC, &I, &DT))
+            X = Builder.CreateFreeze(X, X->getName() + ".fr");
+
           auto *NewAdd = BinaryOperator::CreateNUWAdd(
               X, Builder.CreateLShr(X, ConstantInt::get(Ty, ShAmtC), "",
                                     I.isExact()));

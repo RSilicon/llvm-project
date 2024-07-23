@@ -616,8 +616,6 @@ define i32 @lshr_mul_times_3_div_2(i32 noundef %0) {
   ret i32 %lshr
 }
 
-; Negative test
-
 define i32 @lshr_mul_times_3_div_2_undef(i32 %0) {
 ; CHECK-LABEL: @lshr_mul_times_3_div_2_undef(
 ; CHECK-NEXT:    [[MUL:%.*]] = mul nuw nsw i32 [[TMP0:%.*]], 3
