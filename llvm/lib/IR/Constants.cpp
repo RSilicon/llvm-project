@@ -2639,27 +2639,35 @@ Constant *ConstantExpr::getExactLogBase2(Constant *C) {
   if (match(C, m_APInt(IVal)) && IVal->isPowerOf2())
     return ConstantInt::get(Ty, IVal->logBase2());
 
-  // FIXME: We can extract pow of 2 of splat constant for scalable vectors.
+  // Handle fixed vector type
   auto *VecTy = dyn_cast<FixedVectorType>(Ty);
-  if (!VecTy)
-    return nullptr;
-
-  SmallVector<Constant *, 4> Elts;
-  for (unsigned I = 0, E = VecTy->getNumElements(); I != E; ++I) {
-    Constant *Elt = C->getAggregateElement(I);
-    if (!Elt)
-      return nullptr;
-    // Note that log2(iN undef) is *NOT* iN undef, because log2(iN undef) u< N.
-    if (isa<UndefValue>(Elt)) {
-      Elts.push_back(Constant::getNullValue(Ty->getScalarType()));
-      continue;
+  if (VecTy) {
+    SmallVector<Constant *, 4> Elts;
+    for (unsigned I = 0, E = VecTy->getNumElements(); I != E; ++I) {
+      Constant *Elt = C->getAggregateElement(I);
+      if (!Elt)
+        return nullptr;
+      if (isa<UndefValue>(Elt)) {
+        Elts.push_back(Constant::getNullValue(Ty->getScalarType()));
+        continue;
+      }
+      if (!match(Elt, m_Power2(IVal)))
+        return nullptr;
+      Elts.push_back(ConstantInt::get(Ty->getScalarType(), IVal->logBase2()));
     }
-    if (!match(Elt, m_APInt(IVal)) || !IVal->isPowerOf2())
-      return nullptr;
-    Elts.push_back(ConstantInt::get(Ty->getScalarType(), IVal->logBase2()));
+    return ConstantVector::get(Elts);
   }
 
-  return ConstantVector::get(Elts);
+  // Handle scalable vector type
+  auto *ScalableVecTy = dyn_cast<ScalableVectorType>(Ty);
+  if (ScalableVecTy) {
+      Constant *SplatElt = C->getSplatValue();
+      if (SplatElt && match(SplatElt, m_Power2(IVal)))
+        return ConstantVector::getSplat(ScalableVecTy->getElementCount(),
+                                        ConstantInt::get(Ty->getScalarType(), IVal->logBase2()));
+  }
+
+  return nullptr;
 }
 
 Constant *ConstantExpr::getBinOpIdentity(unsigned Opcode, Type *Ty,
