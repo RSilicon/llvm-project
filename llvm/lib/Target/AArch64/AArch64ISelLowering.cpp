@@ -3433,7 +3433,9 @@ static bool isLegalArithImmed(uint64_t C) {
 
 static bool cannotBeIntMin(SDValue CheckedVal, SelectionDAG &DAG) {
   KnownBits KnownSrc = DAG.computeKnownBits(CheckedVal);
-  return !KnownSrc.getSignedMinValue().isMinSignedValue();
+  if (KnownSrc.getBitWidth() > 32)
+    return !KnownSrc.sextOrTrunc(64).getSignedMinValue().isMinSignedValue();
+  return !KnownSrc.sext(32).getSignedMinValue().isMinSignedValue();
 }
 
 // Can a (CMP op1, (sub 0, op2) be turned into a CMN instruction on
